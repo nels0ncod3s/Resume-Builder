@@ -3,138 +3,130 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CV – Nelson</title>
+    <title>CV Template</title>
     <link rel="stylesheet" href="style3.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500&display=swap"
       rel="stylesheet"
     />
   </head>
   <body>
-    <div id="cv">
-      <!-- HEADER -->
-      <header class="header">
-        <h1 contenteditable="true">Demilade Wey</h1>
-        <p class="tagline" contenteditable="true">
-          Software Engineer &nbsp;|&nbsp; Lagos, Nigeria
-        </p>
-        <p class="contact" contenteditable="true">
-          oluwademiladewey@gmail.com &nbsp;|&nbsp; +234 814 668 1313
-          &nbsp;|&nbsp; github.com/nels0ncod3s
-        </p>
-      </header>
-
-      <!-- PROFILE -->
-      <section>
-        <h2>Profile</h2>
-        <p contenteditable="true">
-          Software Engineering student with a strong foundation in web
-          development and backend engineering. I'm passionate about building
-          scaleable, user-friendly applications and improving through hands-on
-          development.
-        </p>
-      </section>
-
-      <!-- EDUCATION -->
-      <section>
-        <h2>Education</h2>
-        <div class="entry" contenteditable="true">
-          <div class="entry-header">
-            <h3><strong>OND Computer Science</strong></h3>
-            <span class="date">Jan 2020 – April 2024</span>
-          </div>
-          <p class="institution">Yaba College of Technlogy, Lagos</p>
-          <p></p>
-          <br />
-          <div class="entry-header">
-            <h3><strong>BSc. Software Engineering</strong></h3>
-            <span class="date">Jan 2026 – Present</span>
-          </div>
-          <p class="institution">Miva Open University, Lagos</p>
-          <p></p>
-        </div>
-      </section>
-
-      <!-- EXPERIENCE -->
-      <section>
-        <h2>Experience</h2>
-        <div class="entry" contenteditable="true">
-          <div class="entry-header">
-            <h3>Web Developer</h3>
-            <span class="date">May 2024 – Jan 2025</span>
-          </div>
-          <p class="institution">Employed</p>
-          <ul>
-            <li>Built a responsive website for Elphe schoools.</li>
-          </ul>
-          <br />
-          <div class="entry-header">
-            <h3>Freelance Web Developer</h3>
-            <span class="date">March 2025 – June 2025</span>
-          </div>
-          <p class="institution">Self-Employed</p>
-          <ul>
-            <li>Designed and Built over 20 front-end webpages for a client</li>
-          </ul>
-        </div>
-      </section>
-
-      <!-- PROJECTS -->
-      <section>
-        <h2>Projects</h2>
-        <div class="entry" contenteditable="true">
-          <div class="entry-header">
-            <h3>Revolv</h3>
-          </div>
-          <p>
-            Built a subscription tracker using react native for users to track
-            their re-occurring subscriptions/payments
+    <!-- scaling viewport keeps #cv at true A4 pixel size for export,
+         while visually shrinking it to fit smaller screens -->
+    <div class="cv-viewport">
+      <div id="cv">
+        <!-- HEADER -->
+        <header class="header">
+          <h1 contenteditable="true">Your Name</h1>
+          <p class="tagline" contenteditable="true">
+            Your Job Title &nbsp;|&nbsp; City, Country
           </p>
-          <br />
-          <div class="entry-header">
-            <h3>Anagram Solver</h3>
-            <span class="date"></span>
-          </div>
-          <p>
-            Built a python script to solve word anagram by checking a dictionary
-            word list.
+          <p class="contact" contenteditable="true">
+            youremail@example.com &nbsp;|&nbsp; +000 000 0000
+            &nbsp;|&nbsp; github.com/yourusername
           </p>
-        </div>
-      </section>
+        </header>
 
-      <!-- INTEREST -->
-      <!--
-      <section>
-        <h2>Interests</h2>
-        <div class="interest" contenteditable="true">
-          <ul>
-            <li>Basketball</li>
-            <li>Japanese</li>
-          </ul>
-          <br />
-        </div>
-      </section>
-      -->
+        <!-- PROFILE -->
+        <section>
+          <h2>Profile</h2>
+          <p contenteditable="true">
+            A brief, punchy professional summary goes here. Cover who you are,
+            the kind of work you do, and what you're looking for next in
+            two to three sentences tailored to the role.
+          </p>
+        </section>
 
-      <!-- SKILLS -->
-      <section>
-        <h2>Skills</h2>
-        <div class="skills-grid" contenteditable="true">
-          <div><strong>Languages:</strong> HTML, CSS, JavaScript, Python</div>
-          <div>
-            <strong>Frameworks:</strong> React Native, Node.js, Express, FastAPI
+        <!-- EDUCATION -->
+        <section>
+          <h2>Education</h2>
+          <div class="entry" contenteditable="true">
+            <div class="entry-header">
+              <h3><strong>Degree Name</strong></h3>
+              <span class="date">Month Year – Month Year</span>
+            </div>
+            <p class="institution">Institution Name, City</p>
+            <p></p>
+            <br />
+            <div class="entry-header">
+              <h3><strong>Degree Name</strong></h3>
+              <span class="date">Month Year – Present</span>
+            </div>
+            <p class="institution">Institution Name, City</p>
+            <p></p>
           </div>
-          <div><strong>Tools:</strong> Git, Figma, VS Code</div>
-          <div>
-            <strong>Soft Skills:</strong> Communication, Problem-solving,
-            Self-management
+        </section>
+
+        <!-- EXPERIENCE -->
+        <section>
+          <h2>Experience</h2>
+          <div class="entry" contenteditable="true">
+            <div class="entry-header">
+              <h3>Job Title</h3>
+              <span class="date">Month Year – Month Year</span>
+            </div>
+            <p class="institution">Company Name</p>
+            <ul>
+              <li>Describe a key responsibility or achievement in this role.</li>
+            </ul>
+            <br />
+            <div class="entry-header">
+              <h3>Job Title</h3>
+              <span class="date">Month Year – Month Year</span>
+            </div>
+            <p class="institution">Company Name</p>
+            <ul>
+              <li>Describe a key responsibility or achievement in this role.</li>
+            </ul>
           </div>
-        </div>
-      </section>
+        </section>
+
+        <!-- PROJECTS -->
+        <section>
+          <h2>Projects</h2>
+          <div class="entry" contenteditable="true">
+            <div class="entry-header">
+              <h3>Project Name</h3>
+            </div>
+            <p>
+              A short description of what you built, the problem it solves,
+              and the technologies used.
+            </p>
+            <br />
+            <div class="entry-header">
+              <h3>Project Name</h3>
+              <span class="date"></span>
+            </div>
+            <p>
+              A short description of what you built, the problem it solves,
+              and the technologies used.
+            </p>
+          </div>
+        </section>
+
+        <!-- SKILLS -->
+        <section>
+          <h2>Skills</h2>
+          <div class="skills-grid" contenteditable="true">
+            <div><strong>Languages:</strong> Skill, Skill, Skill</div>
+            <div>
+              <strong>Frameworks:</strong> Framework, Framework, Framework
+            </div>
+            <div><strong>Tools:</strong> Tool, Tool, Tool</div>
+            <div>
+              <strong>Soft Skills:</strong> Skill, Skill, Skill
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
 
-    <button onclick="downloadCV()">Download as Image</button>
+    <div class="download-bar">
+      <button onclick="downloadCVAsImage()">Download as Image</button>
+      <button onclick="downloadCVAsPDF()">Download as PDF</button>
+    </div>
 
     <script src="script.js"></script>
   </body>

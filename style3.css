@@ -18,6 +18,20 @@ body {
   padding: 40px 20px 60px;
 }
 
+/* ── Scaling viewport ──
+   #cv keeps its true A4 pixel dimensions (needed for accurate, sharp
+   image/PDF export) but is visually scaled down to fit narrow screens
+   via a JS-controlled transform on #cv itself. This wrapper collapses
+   its height to match the scaled size so there's no leftover blank
+   space beneath the page on mobile. */
+.cv-viewport {
+  width: 100%;
+  max-width: 794px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
 /* ── A4 Fixed Page ── */
 #cv {
   width: 794px; /* A4 at 96dpi */
@@ -27,6 +41,8 @@ body {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
   overflow: hidden; /* content must fit — keeps it true A4 */
   position: relative;
+  flex-shrink: 0;
+  transform-origin: top center;
 }
 
 /* subtle top accent line */
@@ -104,10 +120,6 @@ h3 {
   color: #111;
 }
 
-/*.interest{
-  display: flexbox;
-}*/
-
 .date {
   font-size: 12px;
   color: #888;
@@ -145,16 +157,24 @@ ul li {
   color: #333;
   line-height: 1.6;
 }
-strong{
+strong {
   font-size: 15px;
 }
 .skills-grid strong {
   color: #111;
 }
 
+/* ── Download Bar ── */
+.download-bar {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 28px;
+}
+
 /* ── Download Button ── */
 button {
-  margin-top: 28px;
   padding: 12px 32px;
   background: #1a1a1a;
   color: white;
@@ -177,4 +197,31 @@ button:hover {
   outline: 2px dashed #bbb;
   outline-offset: 3px;
   border-radius: 2px;
+}
+
+/* ── Mobile responsiveness ──
+   #cv's own width/height stay fixed (it's captured 1:1 by html2canvas);
+   script.js applies a matching transform: scale() on smaller viewports
+   so the page shrinks visually without reflowing or clipping content. */
+@media (max-width: 860px) {
+  body {
+    padding: 24px 12px 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 16px 8px 32px;
+  }
+
+  .download-bar {
+    width: 100%;
+    gap: 10px;
+  }
+
+  button {
+    flex: 1 1 auto;
+    padding: 12px 16px;
+    font-size: 13px;
+  }
 }
