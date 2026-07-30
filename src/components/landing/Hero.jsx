@@ -28,9 +28,8 @@ export default function Hero() {
 
       <motion.h1
         variants={item}
-        className="font-display text-5xl font-bold leading-[1.05] tracking-tight text-ink md:text-7xl"
+        className="font-display text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl sm:leading-[1.05] md:text-7xl"
       >
-
         Build the résumé recruiters
         <br className="hidden md:block" /> actually read.
       </motion.h1>
@@ -54,14 +53,11 @@ export default function Hero() {
             Build my résumé →
           </motion.span>
         </Link>
-        <Link to="/app/ats-checker">
-          <motion.span
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.97 }}
-            className="inline-block rounded-full border border-line px-7 py-3.5 text-sm font-semibold text-ink transition-colors hover:border-ink"
-          >
-            Try the ATS Checker
-          </motion.span>
+        <Link
+          to="/app/ats-checker"
+          className="text-sm font-semibold text-ink-soft underline underline-offset-4 transition-colors hover:text-ink"
+        >
+          Try the ATS Checker
         </Link>
       </motion.div>
     </motion.section>

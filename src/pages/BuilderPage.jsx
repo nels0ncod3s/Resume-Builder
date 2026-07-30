@@ -29,7 +29,7 @@ export default function BuilderPage() {
             <CVPreview ref={cvRef} resume={resume} />
           </CVScaledViewport>
         </div>
-        <DownloadBar cvRef={cvRef} />
+        <DownloadBar cvRef={cvRef} resume={resume} />
       </div>
     </div>
   );

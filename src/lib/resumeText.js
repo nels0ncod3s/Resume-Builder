@@ -3,31 +3,42 @@ export function resumeToText(resume) {
 
   lines.push(resume.name, resume.tagline, resume.location);
   lines.push(`${resume.email} ${resume.phone} ${resume.link}`);
-  lines.push("", "PROFILE", resume.profile);
 
-  lines.push("", "EDUCATION");
-  for (const item of resume.education) {
-    lines.push(`${item.degree} — ${item.institution} (${item.dates})`);
+  if (resume.profile.trim()) {
+    lines.push("", "PROFILE", resume.profile);
   }
 
-  lines.push("", "EXPERIENCE");
-  for (const item of resume.experience) {
-    lines.push(`${item.title} — ${item.company} (${item.dates})`);
-    for (const bullet of item.bullets) lines.push(`• ${bullet}`);
+  if (resume.education.length > 0) {
+    lines.push("", "EDUCATION");
+    for (const item of resume.education) {
+      lines.push(`${item.degree} — ${item.institution} (${item.dates})`);
+    }
   }
 
-  lines.push("", "PROJECTS");
-  for (const item of resume.projects) {
-    lines.push(item.name);
-    lines.push(item.description);
+  if (resume.experience.length > 0) {
+    lines.push("", "EXPERIENCE");
+    for (const item of resume.experience) {
+      lines.push(`${item.title} — ${item.company} (${item.dates})`);
+      for (const bullet of item.bullets) lines.push(`• ${bullet}`);
+    }
   }
 
-  lines.push("", "SKILLS");
+  if (resume.projects.length > 0) {
+    lines.push("", "PROJECTS");
+    for (const item of resume.projects) {
+      lines.push(item.name);
+      lines.push(item.description);
+    }
+  }
+
   const { languages, frameworks, tools, soft } = resume.skills;
-  lines.push(`Languages: ${languages}`);
-  lines.push(`Frameworks: ${frameworks}`);
-  lines.push(`Tools: ${tools}`);
-  lines.push(`Soft Skills: ${soft}`);
+  if (languages || frameworks || tools || soft) {
+    lines.push("", "SKILLS");
+    if (languages) lines.push(`Languages: ${languages}`);
+    if (frameworks) lines.push(`Frameworks: ${frameworks}`);
+    if (tools) lines.push(`Tools: ${tools}`);
+    if (soft) lines.push(`Soft Skills: ${soft}`);
+  }
 
   return lines.join("\n");
 }

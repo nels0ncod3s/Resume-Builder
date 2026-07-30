@@ -17,22 +17,34 @@ function tokenize(text) {
   return text.toLowerCase().match(/[a-z][a-z+.#-]*[a-z]|[a-z]/g) || [];
 }
 
-/** Many PDF generators (including ours) render a bullet glyph as its own
- * text run on its own line, separate from the line it marks — so a naive
- * per-line scan misses every bullet. Merge lone markers into the next line.
- * Returns the full line array with markers merged in (non-bullet lines
- * untouched), so callers that need surrounding structure (not just the
- * bullets themselves) can reuse it too. */
+/** Many PDF generators render a bullet glyph as its own text run on its own
+ * line, separate from the text it marks — so a naive per-line scan misses
+ * every bullet. Which side it lands on depends on the generator (we've seen
+ * both: marker-then-text, and text-then-marker when the marker's baseline
+ * sits a couple points off the paragraph's), so this merges a lone marker
+ * with whichever neighboring line isn't itself a marker — preferring the
+ * next line, falling back to the previous one. Returns the full line array
+ * with markers merged in (non-bullet lines untouched), so callers that need
+ * surrounding structure (not just the bullets themselves) can reuse it. */
 export function mergeLoneBulletMarkers(lines) {
   const merged = [];
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (LONE_BULLET_MARKER_RE.test(line) && lines[i + 1]) {
-      merged.push(`${line} ${lines[i + 1]}`);
-      i++;
-    } else {
-      merged.push(line);
+    if (LONE_BULLET_MARKER_RE.test(line)) {
+      const next = lines[i + 1];
+      if (next && !LONE_BULLET_MARKER_RE.test(next)) {
+        merged.push(`${line} ${next}`);
+        i++;
+        continue;
+      }
+      const prevIndex = merged.length - 1;
+      const prev = merged[prevIndex];
+      if (prev && !LONE_BULLET_MARKER_RE.test(prev) && !BULLET_LINE_RE.test(prev)) {
+        merged[prevIndex] = `${line} ${prev}`;
+        continue;
+      }
     }
+    merged.push(line);
   }
   return merged;
 }

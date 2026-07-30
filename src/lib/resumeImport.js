@@ -13,6 +13,13 @@ const SECTION_HEADERS = [
   { key: "education", re: /^education$/i },
   { key: "projects", re: /^projects?$/i },
   { key: "skills", re: /^(skills|technical skills)$/i },
+  // Recognized so their content doesn't leak into whatever section came
+  // before them, but there's no field for them in our resume model yet —
+  // so they're bucketed and simply dropped rather than corrupting others.
+  {
+    key: "ignore",
+    re: /^(certifications?|awards?|honors?|publications?|references?|interests?|languages?( spoken)?|volunteer(ing)?)$/i,
+  },
 ];
 
 function id() {
@@ -81,16 +88,26 @@ function parseEducation(lines) {
   return entries;
 }
 
+const PROJECT_METADATA_RE = /^(tech(nologies)?|stack|tools?|built with)\s*:/i;
+
 function parseProjects(lines) {
   const entries = [];
   let current = null;
   for (const line of lines) {
-    const looksLikeTitle = line.length <= 60 && !/[.!?]$/.test(line);
-    if (looksLikeTitle || !current) {
+    const isMetadata = PROJECT_METADATA_RE.test(line) || /^\[[^\]]*\]$/.test(line);
+    const looksLikeNewTitle =
+      !isMetadata &&
+      line.length <= 60 &&
+      !/[.!?]$/.test(line) &&
+      (current === null || current.description.length > 0);
+
+    if (looksLikeNewTitle) {
       if (current) entries.push(current);
       current = { id: id(), name: line, description: "" };
-    } else {
+    } else if (current) {
       current.description = current.description ? `${current.description} ${line}` : line;
+    } else {
+      current = { id: id(), name: line, description: "" };
     }
   }
   if (current) entries.push(current);
@@ -152,22 +169,41 @@ export function parseResumeText(rawText) {
   const fullText = rawText;
   const emailMatch = fullText.match(EMAIL_RE);
   const phoneMatch = fullText.match(PHONE_RE);
-  const preambleNoContact = sections.preamble.filter(
-    (l) => !EMAIL_RE.test(l) && !PHONE_RE.test(l)
-  );
-  const urlMatch = preambleNoContact.join(" ").match(URL_RE) ?? fullText.match(URL_RE);
 
   const resume = createDefaultResume();
 
-  if (preambleNoContact[0]) resume.name = preambleNoContact[0];
-  if (preambleNoContact[1]) {
-    const parts = preambleNoContact[1].split("|").map((p) => p.trim());
-    resume.tagline = parts[0] ?? resume.tagline;
-    resume.location = parts[1] ?? resume.location;
-  }
+  const [nameLine, ...restLines] = sections.preamble;
+  if (nameLine) resume.name = nameLine;
+
+  // Join the remaining preamble lines with "|" so a tagline and a
+  // separate "location | email | phone | link" line both land in the
+  // same delimited string — real resumes put contact info on its own
+  // line about as often as they cram everything onto one, and this
+  // handles either case the same way instead of assuming a fixed layout.
+  const restText = restLines.join(" | ");
+  // Strip the email out before URL-matching — its own domain (e.g.
+  // "gmail.com") is otherwise indistinguishable from a real link.
+  const restTextNoEmail = emailMatch ? restText.replace(emailMatch[0], "") : restText;
+  const urlMatch =
+    restTextNoEmail.match(URL_RE) ??
+    (emailMatch ? fullText.replace(emailMatch[0], "") : fullText).match(URL_RE);
+
   if (emailMatch) resume.email = emailMatch[0];
   if (phoneMatch) resume.phone = phoneMatch[0].trim();
   if (urlMatch) resume.link = urlMatch[0];
+
+  let taglineLocationText = restText;
+  for (const token of [emailMatch?.[0], phoneMatch?.[0], urlMatch?.[0]]) {
+    if (token) taglineLocationText = taglineLocationText.replace(token, "");
+  }
+  taglineLocationText = taglineLocationText
+    .replace(/\|+/g, "|")
+    .replace(/^\s*\|\s*|\s*\|\s*$/g, "")
+    .trim();
+
+  const parts = taglineLocationText.split("|").map((p) => p.trim()).filter(Boolean);
+  if (parts[0]) resume.tagline = parts[0];
+  if (parts[1]) resume.location = parts[1];
 
   if (sections.profile?.length) resume.profile = sections.profile.join(" ");
   if (sections.experience?.length) resume.experience = parseExperience(sections.experience);

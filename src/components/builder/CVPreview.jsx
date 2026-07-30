@@ -26,58 +26,76 @@ const CVPreview = forwardRef(function CVPreview({ resume }, ref) {
         </p>
       </header>
 
-      <Section title="Profile">
-        <p className="text-[15px] leading-[1.65] text-[#333]">{resume.profile}</p>
-      </Section>
+      {resume.profile.trim() && (
+        <Section title="Profile">
+          <p className="text-[15px] leading-[1.65] text-[#333]">{resume.profile}</p>
+        </Section>
+      )}
 
-      <Section title="Education">
-        {resume.education.map((item) => (
-          <Entry key={item.id} title={item.degree} dates={item.dates}>
-            <p className="mb-1 text-[12.5px] font-medium text-[#555]">{item.institution}</p>
-          </Entry>
-        ))}
-      </Section>
+      {resume.education.length > 0 && (
+        <Section title="Education">
+          {resume.education.map((item) => (
+            <Entry key={item.id} title={item.degree} dates={item.dates}>
+              <p className="mb-1 text-[12.5px] font-medium text-[#555]">{item.institution}</p>
+            </Entry>
+          ))}
+        </Section>
+      )}
 
-      <Section title="Experience">
-        {resume.experience.map((item) => (
-          <Entry key={item.id} title={item.title} dates={item.dates}>
-            <p className="mb-1 text-[12.5px] font-medium text-[#555]">{item.company}</p>
-            <ul className="mt-1 list-disc pl-[18px]">
-              {item.bullets.map((bullet, i) => (
-                <li key={i} className="text-[15px] leading-[1.7] text-[#333]">
-                  {bullet}
-                </li>
-              ))}
-            </ul>
-          </Entry>
-        ))}
-      </Section>
+      {resume.experience.length > 0 && (
+        <Section title="Experience">
+          {resume.experience.map((item) => (
+            <Entry key={item.id} title={item.title} dates={item.dates}>
+              <p className="mb-1 text-[12.5px] font-medium text-[#555]">{item.company}</p>
+              <ul className="mt-1 list-disc pl-[18px]">
+                {item.bullets.map((bullet, i) => (
+                  <li key={i} className="text-[15px] leading-[1.7] text-[#333]">
+                    {bullet}
+                  </li>
+                ))}
+              </ul>
+            </Entry>
+          ))}
+        </Section>
+      )}
 
-      <Section title="Projects">
-        {resume.projects.map((item) => (
-          <div key={item.id} className="mb-3.5">
-            <h3 className="text-base font-light text-[#111]">{item.name}</h3>
-            <p className="text-[15px] leading-[1.65] text-[#333]">{item.description}</p>
-          </div>
-        ))}
-      </Section>
+      {resume.projects.length > 0 && (
+        <Section title="Projects">
+          {resume.projects.map((item) => (
+            <div key={item.id} className="mb-3.5">
+              <h3 className="text-base font-light text-[#111]">{item.name}</h3>
+              <p className="text-[15px] leading-[1.65] text-[#333]">{item.description}</p>
+            </div>
+          ))}
+        </Section>
+      )}
 
-      <Section title="Skills">
-        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[15px] leading-[1.6] text-[#333]">
-          <div>
-            <strong className="text-[#111]">Languages:</strong> {skills.languages}
+      {Object.values(skills).some(Boolean) && (
+        <Section title="Skills">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[15px] leading-[1.6] text-[#333]">
+            {skills.languages && (
+              <div>
+                <strong className="text-[#111]">Languages:</strong> {skills.languages}
+              </div>
+            )}
+            {skills.frameworks && (
+              <div>
+                <strong className="text-[#111]">Frameworks:</strong> {skills.frameworks}
+              </div>
+            )}
+            {skills.tools && (
+              <div>
+                <strong className="text-[#111]">Tools:</strong> {skills.tools}
+              </div>
+            )}
+            {skills.soft && (
+              <div>
+                <strong className="text-[#111]">Soft Skills:</strong> {skills.soft}
+              </div>
+            )}
           </div>
-          <div>
-            <strong className="text-[#111]">Frameworks:</strong> {skills.frameworks}
-          </div>
-          <div>
-            <strong className="text-[#111]">Tools:</strong> {skills.tools}
-          </div>
-          <div>
-            <strong className="text-[#111]">Soft Skills:</strong> {skills.soft}
-          </div>
-        </div>
-      </Section>
+        </Section>
+      )}
     </div>
   );
 });

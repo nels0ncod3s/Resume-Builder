@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 
 const links = [
   { to: "/app/builder", label: "Resume Builder", icon: "📝", tourId: "nav-builder" },
+  { to: "/app/cover-letter", label: "Cover Letter", icon: "✉️", tourId: "nav-cover-letter" },
   { to: "/app/ats-checker", label: "ATS Checker", icon: "🎯", tourId: "nav-ats" },
 ];
 

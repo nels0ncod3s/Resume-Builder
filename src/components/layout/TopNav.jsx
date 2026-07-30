@@ -1,8 +1,9 @@
 import { NavLink } from "react-router-dom";
 
 const links = [
-  { to: "/app/builder", label: "Builder" },
-  { to: "/app/ats-checker", label: "ATS Checker" },
+  { to: "/app/builder", label: "Builder", tourId: "nav-builder-mobile" },
+  { to: "/app/cover-letter", label: "Cover Letter", tourId: "nav-cover-letter-mobile" },
+  { to: "/app/ats-checker", label: "ATS Checker", tourId: "nav-ats-mobile" },
 ];
 
 export default function TopNav({ title, onStartTour }) {
@@ -28,6 +29,7 @@ export default function TopNav({ title, onStartTour }) {
           <NavLink
             key={link.to}
             to={link.to}
+            data-tour={link.tourId}
             className={({ isActive }) =>
               `flex min-h-[44px] flex-1 items-center justify-center rounded-full text-sm font-semibold transition-colors ${
                 isActive ? "bg-ink text-white" : "border border-line text-ink-soft"

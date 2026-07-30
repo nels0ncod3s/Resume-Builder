@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { driver } from "driver.js";
 
 const SEEN_KEY_PREFIX = "resumely.tour.";
+const MOBILE_MEDIA_QUERY = "(max-width: 767px)";
 
 function hasSeenTour(id) {
   return localStorage.getItem(SEEN_KEY_PREFIX + id) === "1";
@@ -11,7 +12,18 @@ function markTourSeen(id) {
   localStorage.setItem(SEEN_KEY_PREFIX + id, "1");
 }
 
-const BUILDER_STEPS = [
+function isMobileViewport() {
+  return typeof window !== "undefined" && window.matchMedia(MOBILE_MEDIA_QUERY).matches;
+}
+
+// The sidebar's nav-builder/nav-ats elements are display:none on mobile
+// (the same links live in TopNav's mobile nav instead), so the tour has to
+// target whichever pair is actually visible for the current viewport.
+function buildBuilderSteps(mobile) {
+  const navBuilder = mobile ? '[data-tour="nav-builder-mobile"]' : '[data-tour="nav-builder"]';
+  const navAts = mobile ? '[data-tour="nav-ats-mobile"]' : '[data-tour="nav-ats"]';
+
+  return [
   {
     popover: {
       title: "Welcome to the Resume Builder",
@@ -19,11 +31,11 @@ const BUILDER_STEPS = [
     },
   },
   {
-    element: '[data-tour="nav-builder"]',
+    element: navBuilder,
     popover: { title: "Resume Builder", description: "You're here — design your CV." },
   },
   {
-    element: '[data-tour="nav-ats"]',
+    element: navAts,
     popover: {
       title: "ATS Checker",
       description: "Switch here any time to stress-test your resume against ATS filters.",
@@ -57,7 +69,8 @@ const BUILDER_STEPS = [
       description: "Download as a PDF or PNG whenever you're happy with it.",
     },
   },
-];
+  ];
+}
 
 const ATS_STEPS = [
   {
@@ -89,6 +102,16 @@ const ATS_STEPS = [
   },
 ];
 
+function addSkipButton(popoverDOM, driverInstance) {
+  if (popoverDOM.footer.querySelector(".resumely-skip-btn")) return;
+  const skipBtn = document.createElement("button");
+  skipBtn.type = "button";
+  skipBtn.className = "resumely-skip-btn";
+  skipBtn.textContent = "Skip tour";
+  skipBtn.addEventListener("click", () => driverInstance.destroy());
+  popoverDOM.footer.prepend(skipBtn);
+}
+
 function useTour(id, steps, registerTour) {
   const driverRef = useRef(null);
 
@@ -97,6 +120,9 @@ function useTour(id, steps, registerTour) {
       showProgress: true,
       popoverClass: "resumely-tour",
       steps,
+      onPopoverRender: (popoverDOM, { driver: driverInstance }) => {
+        addSkipButton(popoverDOM, driverInstance);
+      },
     });
 
     registerTour?.(() => driverRef.current?.drive());
@@ -114,7 +140,10 @@ function useTour(id, steps, registerTour) {
 }
 
 export function useBuilderTour(registerTour) {
-  useTour("builder", BUILDER_STEPS, registerTour);
+  // Computed once at mount so the steps array stays referentially stable
+  // (avoids tearing down/rebuilding the driver.js instance on every render).
+  const steps = useMemo(() => buildBuilderSteps(isMobileViewport()), []);
+  useTour("builder", steps, registerTour);
 }
 
 export function useAtsTour(registerTour) {

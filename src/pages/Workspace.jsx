@@ -5,6 +5,7 @@ import TopNav from "../components/layout/TopNav.jsx";
 
 const TITLES = {
   "/app/builder": "Resume Builder",
+  "/app/cover-letter": "Cover Letter",
   "/app/ats-checker": "ATS Checker",
 };
 

@@ -9,6 +9,9 @@ export default function EditorPanel({ resume, setResume }) {
   const updateSkill = (key, value) =>
     setResume((r) => ({ ...r, skills: { ...r.skills, [key]: value } }));
 
+  const clearSkills = () =>
+    setResume((r) => ({ ...r, skills: { languages: "", frameworks: "", tools: "", soft: "" } }));
+
   const updateItem = (listKey, id, field, value) =>
     setResume((r) => ({
       ...r,
@@ -72,7 +75,7 @@ export default function EditorPanel({ resume, setResume }) {
         </div>
       </Field>
 
-      <Field label="Profile">
+      <Field label="Profile" onRemoveSection={resume.profile ? () => update("profile", "") : undefined}>
         <textarea
           rows={4}
           className={inputCls}
@@ -81,7 +84,11 @@ export default function EditorPanel({ resume, setResume }) {
         />
       </Field>
 
-      <Field label="Education" onAdd={() => addItem("education", () => ({ id: crypto.randomUUID(), degree: "Degree Name", institution: "Institution Name, City", dates: "" }))}>
+      <Field
+        label="Education"
+        onAdd={() => addItem("education", () => ({ id: crypto.randomUUID(), degree: "Degree Name", institution: "Institution Name, City", dates: "" }))}
+        onRemoveSection={resume.education.length > 0 ? () => update("education", []) : undefined}
+      >
         {resume.education.map((item) => (
           <div key={item.id} className="mb-3 rounded-lg border border-line p-3">
             <div className="grid grid-cols-2 gap-2">
@@ -94,7 +101,11 @@ export default function EditorPanel({ resume, setResume }) {
         ))}
       </Field>
 
-      <Field label="Experience" onAdd={() => addItem("experience", () => ({ id: crypto.randomUUID(), title: "Job Title", company: "Company Name", dates: "", bullets: [""] }))}>
+      <Field
+        label="Experience"
+        onAdd={() => addItem("experience", () => ({ id: crypto.randomUUID(), title: "Job Title", company: "Company Name", dates: "", bullets: [""] }))}
+        onRemoveSection={resume.experience.length > 0 ? () => update("experience", []) : undefined}
+      >
         {resume.experience.map((item) => (
           <div key={item.id} className="mb-3 rounded-lg border border-line p-3">
             <div className="grid grid-cols-2 gap-2">
@@ -125,7 +136,11 @@ export default function EditorPanel({ resume, setResume }) {
         ))}
       </Field>
 
-      <Field label="Projects" onAdd={() => addItem("projects", () => ({ id: crypto.randomUUID(), name: "Project Name", description: "" }))}>
+      <Field
+        label="Projects"
+        onAdd={() => addItem("projects", () => ({ id: crypto.randomUUID(), name: "Project Name", description: "" }))}
+        onRemoveSection={resume.projects.length > 0 ? () => update("projects", []) : undefined}
+      >
         {resume.projects.map((item) => (
           <div key={item.id} className="mb-3 rounded-lg border border-line p-3">
             <input className={inputCls} placeholder="Project name" value={item.name} onChange={(e) => updateItem("projects", item.id, "name", e.target.value)} />
@@ -135,7 +150,12 @@ export default function EditorPanel({ resume, setResume }) {
         ))}
       </Field>
 
-      <Field label="Skills">
+      <Field
+        label="Skills"
+        onRemoveSection={
+          Object.values(resume.skills).some(Boolean) ? clearSkills : undefined
+        }
+      >
         <div className="grid grid-cols-1 gap-3">
           <Labeled label="Languages">
             <input className={inputCls} value={resume.skills.languages} onChange={(e) => updateSkill("languages", e.target.value)} />
@@ -155,16 +175,27 @@ export default function EditorPanel({ resume, setResume }) {
   );
 }
 
-function Field({ label, onAdd, children }) {
+function Field({ label, onAdd, onRemoveSection, children }) {
   return (
     <section>
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between gap-2">
         <h3 className="font-display text-lg font-bold text-ink">{label}</h3>
-        {onAdd && (
-          <button type="button" onClick={onAdd} className={`px-1 ${smallActionCls}`}>
-            + Add
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {onRemoveSection && (
+            <button
+              type="button"
+              onClick={onRemoveSection}
+              className="flex min-h-[36px] items-center py-2 text-xs font-semibold text-red-500/80 hover:text-red-600"
+            >
+              Remove section
+            </button>
+          )}
+          {onAdd && (
+            <button type="button" onClick={onAdd} className={`px-1 ${smallActionCls}`}>
+              + Add
+            </button>
+          )}
+        </div>
       </div>
       {children}
     </section>

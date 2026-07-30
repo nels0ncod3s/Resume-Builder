@@ -20,19 +20,25 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Belt-and-suspenders pinch-zoom prevention — modern iOS Safari ignores
+     user-scalable=no in the viewport meta tag, but still respects this. */
+  touch-action: manipulation;
 }
 
 #root {
   min-height: 100vh;
 }
 
-/* Hide scrollbars everywhere while keeping scrolling fully functional. */
-* {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* legacy Edge */
-}
-*::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, modern Edge */
+/* Hide scrollbars on mobile only — desktop keeps the normal browser
+   scrollbar, since users expect one there. */
+@media (max-width: 767px) {
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* legacy Edge */
+  }
+  *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, modern Edge */
+  }
 }
 
 /* driver.js popover — restyled to match the app's ink/paper palette */
@@ -54,6 +60,27 @@ body {
 }
 .resumely-tour .driver-popover-progress-text {
   color: var(--color-ink-soft);
+}
+/* Skip button sits on its own row above progress/next-prev, so it doesn't
+   compete for space with the step controls. */
+.resumely-tour .driver-popover-footer {
+  flex-wrap: wrap;
+}
+.resumely-skip-btn {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.resumely-skip-btn:hover,
+.resumely-skip-btn:focus {
+  color: var(--color-ink);
 }
 
 @media (max-width: 480px) {
@@ -79,5 +106,9 @@ body {
     min-width: 40px;
     min-height: 40px;
     font-size: 18px;
+  }
+  .resumely-skip-btn {
+    min-height: 32px;
+    font-size: 13px;
   }
 }
