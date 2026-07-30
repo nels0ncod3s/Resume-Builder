@@ -1,0 +1,15 @@
+export const ACTION_VERBS = new Set([
+  "achieved", "accelerated", "administered", "advised", "analyzed", "architected",
+  "automated", "built", "championed", "coordinated", "created", "delivered",
+  "deployed", "designed", "developed", "directed", "drove", "eliminated",
+  "engineered", "enhanced", "established", "executed", "expanded", "expedited",
+  "facilitated", "founded", "generated", "grew", "guided", "implemented",
+  "improved", "increased", "influenced", "initiated", "integrated", "introduced",
+  "launched", "led", "leveraged", "maintained", "managed", "mentored",
+  "migrated", "modernized", "negotiated", "operated", "optimized", "orchestrated",
+  "organized", "overhauled", "owned", "pioneered", "planned", "prioritized",
+  "produced", "programmed", "published", "reduced", "refactored", "resolved",
+  "restructured", "scaled", "shipped", "simplified", "solved", "spearheaded",
+  "standardized", "streamlined", "strengthened", "supervised", "supported",
+  "tested", "trained", "transformed", "unified", "upgraded", "validated",
+]);

@@ -1,0 +1,48 @@
+import { useCallback, useState } from "react";
+
+export default function UploadDropzone({ onFile, fileName, error }) {
+  const [dragOver, setDragOver] = useState(false);
+
+  const handleFiles = useCallback(
+    (files) => {
+      const file = files?.[0];
+      if (file) onFile(file);
+    },
+    [onFile]
+  );
+
+  return (
+    <div>
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          handleFiles(e.dataTransfer.files);
+        }}
+        className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
+          dragOver ? "border-ink bg-canvas" : "border-line bg-white"
+        }`}
+      >
+        <p className="text-sm font-semibold text-ink">
+          {fileName ? fileName : "Drop a PDF resume here"}
+        </p>
+        <p className="mt-1 text-xs text-ink-soft">or</p>
+        <label className="mt-2 cursor-pointer rounded-full border border-line px-4 py-2 text-xs font-semibold text-ink hover:border-ink">
+          Browse file
+          <input
+            type="file"
+            accept="application/pdf"
+            className="hidden"
+            onChange={(e) => handleFiles(e.target.files)}
+          />
+        </label>
+      </div>
+      {error && <p className="mt-2 text-xs font-medium text-red-600">{error}</p>}
+    </div>
+  );
+}

@@ -2,132 +2,43 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CV Template</title>
-    <link rel="stylesheet" href="style3.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#faf9f7" />
+
+    <title>Resumely — Resume Builder & ATS Checker</title>
+    <meta
+      name="description"
+      content="Build a clean, modern resume and check it against real ATS filters — free, no signup, and your data never leaves your browser."
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Resumely" />
+    <meta property="og:title" content="Resumely — Resume Builder & ATS Checker" />
+    <meta
+      property="og:description"
+      content="Build a clean, modern resume and check it against real ATS filters — free, no signup, and your data never leaves your browser."
+    />
+    <meta property="og:image" content="/og-image.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Resumely — Resume Builder & ATS Checker" />
+    <meta
+      name="twitter:description"
+      content="Build a clean, modern resume and check it against real ATS filters — free, no signup, and your data never leaves your browser."
+    />
+    <meta name="twitter:image" content="/og-image.png" />
+
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
   </head>
   <body>
-    <!-- scaling viewport keeps #cv at true A4 pixel size for export,
-         while visually shrinking it to fit smaller screens -->
-    <div class="cv-viewport">
-      <div id="cv">
-        <!-- HEADER -->
-        <header class="header">
-          <h1 contenteditable="true">Your Name</h1>
-          <p class="tagline" contenteditable="true">
-            Your Job Title &nbsp;|&nbsp; City, Country
-          </p>
-          <p class="contact" contenteditable="true">
-            youremail@example.com &nbsp;|&nbsp; +000 000 0000
-            &nbsp;|&nbsp; github.com/yourusername
-          </p>
-        </header>
-
-        <!-- PROFILE -->
-        <section>
-          <h2>Profile</h2>
-          <p contenteditable="true">
-            A brief, punchy professional summary goes here. Cover who you are,
-            the kind of work you do, and what you're looking for next in
-            two to three sentences tailored to the role.
-          </p>
-        </section>
-
-        <!-- EDUCATION -->
-        <section>
-          <h2>Education</h2>
-          <div class="entry" contenteditable="true">
-            <div class="entry-header">
-              <h3><strong>Degree Name</strong></h3>
-              <span class="date">Month Year – Month Year</span>
-            </div>
-            <p class="institution">Institution Name, City</p>
-            <p></p>
-            <br />
-            <div class="entry-header">
-              <h3><strong>Degree Name</strong></h3>
-              <span class="date">Month Year – Present</span>
-            </div>
-            <p class="institution">Institution Name, City</p>
-            <p></p>
-          </div>
-        </section>
-
-        <!-- EXPERIENCE -->
-        <section>
-          <h2>Experience</h2>
-          <div class="entry" contenteditable="true">
-            <div class="entry-header">
-              <h3>Job Title</h3>
-              <span class="date">Month Year – Month Year</span>
-            </div>
-            <p class="institution">Company Name</p>
-            <ul>
-              <li>Describe a key responsibility or achievement in this role.</li>
-            </ul>
-            <br />
-            <div class="entry-header">
-              <h3>Job Title</h3>
-              <span class="date">Month Year – Month Year</span>
-            </div>
-            <p class="institution">Company Name</p>
-            <ul>
-              <li>Describe a key responsibility or achievement in this role.</li>
-            </ul>
-          </div>
-        </section>
-
-        <!-- PROJECTS -->
-        <section>
-          <h2>Projects</h2>
-          <div class="entry" contenteditable="true">
-            <div class="entry-header">
-              <h3>Project Name</h3>
-            </div>
-            <p>
-              A short description of what you built, the problem it solves,
-              and the technologies used.
-            </p>
-            <br />
-            <div class="entry-header">
-              <h3>Project Name</h3>
-              <span class="date"></span>
-            </div>
-            <p>
-              A short description of what you built, the problem it solves,
-              and the technologies used.
-            </p>
-          </div>
-        </section>
-
-        <!-- SKILLS -->
-        <section>
-          <h2>Skills</h2>
-          <div class="skills-grid" contenteditable="true">
-            <div><strong>Languages:</strong> Skill, Skill, Skill</div>
-            <div>
-              <strong>Frameworks:</strong> Framework, Framework, Framework
-            </div>
-            <div><strong>Tools:</strong> Tool, Tool, Tool</div>
-            <div>
-              <strong>Soft Skills:</strong> Skill, Skill, Skill
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
-
-    <div class="download-bar">
-      <button onclick="downloadCVAsImage()">Download as Image</button>
-      <button onclick="downloadCVAsPDF()">Download as PDF</button>
-    </div>
-
-    <script src="script.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

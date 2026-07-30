@@ -1,0 +1,15 @@
+export const STOPWORDS = new Set([
+  "a", "an", "the", "and", "or", "but", "if", "so", "of", "in", "on", "at",
+  "to", "for", "with", "without", "from", "by", "as", "is", "are", "was",
+  "were", "be", "been", "being", "this", "that", "these", "those", "it",
+  "its", "we", "you", "your", "our", "their", "they", "he", "she", "his",
+  "her", "them", "who", "which", "what", "when", "where", "why", "how",
+  "will", "would", "should", "can", "could", "may", "might", "must", "shall",
+  "not", "no", "yes", "do", "does", "did", "have", "has", "had", "having",
+  "into", "than", "then", "there", "here", "up", "down", "out", "off", "over",
+  "under", "again", "further", "once", "about", "above", "below", "between",
+  "each", "few", "more", "most", "other", "some", "such", "only", "own",
+  "same", "very", "just", "also", "etc", "per", "via", "including", "including",
+  "role", "years", "year", "experience", "work", "working", "team", "teams",
+  "ability", "strong", "including", "across", "within", "including", "job",
+]);
