@@ -39,8 +39,8 @@ export default function Hero() {
         className="mt-6 max-w-xl text-base text-ink-soft md:text-lg"
       >
         Design a clean, professional résumé in minutes, then scan it with our ATS 
-        checker to uncover formatting, missing keyword issues, and mistakes that
-        gets resumes silently rejected before recruiters even reads them.
+        checker to uncover formatting issues, missing keywords, and mistakes that
+        get resumes silently rejected before recruiters even read them.
       </motion.p>
 
       <motion.div variants={item} className="mt-10 flex flex-wrap items-center justify-center gap-4">

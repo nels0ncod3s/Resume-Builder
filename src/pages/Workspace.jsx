@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "../components/layout/Sidebar.jsx";
 import TopNav from "../components/layout/TopNav.jsx";
@@ -18,6 +18,13 @@ export default function Workspace() {
   }, []);
 
   const title = TITLES[location.pathname] ?? "Resume Builder";
+
+  // index.html isn't part of this codebase, so the static <title> tag
+  // can't be edited directly — this keeps the browser tab in sync with
+  // whichever workspace page is active instead.
+  useEffect(() => {
+    document.title = `${title} · Resume Pilot`;
+  }, [title]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-canvas">

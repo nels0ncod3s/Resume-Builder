@@ -8,11 +8,20 @@ const smallActionCls =
 
 export default function EditorPanel({ resume, setResume }) {
   const update = (key, value) => setResume((r) => ({ ...r, [key]: value }));
-  const updateSkill = (key, value) =>
-    setResume((r) => ({ ...r, skills: { ...r.skills, [key]: value } }));
+  const updateSkillGroup = (id, field, value) =>
+    setResume((r) => ({
+      ...r,
+      skills: r.skills.map((g) => (g.id === id ? { ...g, [field]: value } : g)),
+    }));
 
-  const clearSkills = () =>
-    setResume((r) => ({ ...r, skills: { languages: "", frameworks: "", tools: "", soft: "" } }));
+  const addSkillGroup = () =>
+    setResume((r) => ({
+      ...r,
+      skills: [...r.skills, { id: crypto.randomUUID(), label: "Skills", value: "" }],
+    }));
+
+  const removeSkillGroup = (id) =>
+    setResume((r) => ({ ...r, skills: r.skills.filter((g) => g.id !== id) }));
 
   const updateItem = (listKey, id, field, value) =>
     setResume((r) => ({
@@ -158,24 +167,34 @@ export default function EditorPanel({ resume, setResume }) {
 
       <Field
         label="Skills"
+        onAdd={addSkillGroup}
         onRemoveSection={
-          Object.values(resume.skills).some(Boolean) ? clearSkills : undefined
+          resume.skills.some((g) => g.value)
+            ? () => update("skills", [{ id: crypto.randomUUID(), label: "Skills", value: "" }])
+            : undefined
         }
       >
-        <div className="grid grid-cols-1 gap-3">
-          <Labeled label="Languages">
-            <input className={inputCls} value={resume.skills.languages} onChange={(e) => updateSkill("languages", e.target.value)} />
-          </Labeled>
-          <Labeled label="Frameworks">
-            <input className={inputCls} value={resume.skills.frameworks} onChange={(e) => updateSkill("frameworks", e.target.value)} />
-          </Labeled>
-          <Labeled label="Tools">
-            <input className={inputCls} value={resume.skills.tools} onChange={(e) => updateSkill("tools", e.target.value)} />
-          </Labeled>
-          <Labeled label="Soft skills">
-            <input className={inputCls} value={resume.skills.soft} onChange={(e) => updateSkill("soft", e.target.value)} />
-          </Labeled>
-        </div>
+        <p className="mb-3 -mt-1 text-xs text-ink-soft">
+          Leave this as one plain "Skills" list, or use "+ Add" to split it into your own
+          categories (Languages, Certifications, whatever fits your field).
+        </p>
+        {resume.skills.map((group) => (
+          <div key={group.id} className="mb-3 rounded-lg border border-line p-3">
+            <input
+              className={`${inputCls} font-semibold`}
+              placeholder="Category label (e.g. Skills, Languages)"
+              value={group.label}
+              onChange={(e) => updateSkillGroup(group.id, "label", e.target.value)}
+            />
+            <input
+              className={`${inputCls} mt-2`}
+              placeholder="Skill, Skill, Skill"
+              value={group.value}
+              onChange={(e) => updateSkillGroup(group.id, "value", e.target.value)}
+            />
+            <RemoveButton onClick={() => removeSkillGroup(group.id)} />
+          </div>
+        ))}
       </Field>
     </div>
   );

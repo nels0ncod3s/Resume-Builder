@@ -2,8 +2,8 @@ import { forwardRef } from "react";
 import { getTemplate } from "../../data/templates.js";
 
 const CVPreview = forwardRef(function CVPreview({ resume }, ref) {
-  const { skills } = resume;
   const template = getTemplate(resume.template);
+  const skillGroups = resume.skills.filter((g) => g.value?.trim());
   const isBand = template.headerStyle === "band";
   const isLeftRule = template.headerStyle === "left-rule";
 
@@ -64,30 +64,19 @@ const CVPreview = forwardRef(function CVPreview({ resume }, ref) {
           </Section>
         )}
 
-        {Object.values(skills).some(Boolean) && (
-          <Section title="Skills" template={template}>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[15px] leading-[1.6] text-[#333]">
-              {skills.languages && (
-                <div>
-                  <strong className="text-[#111]">Languages:</strong> {skills.languages}
-                </div>
-              )}
-              {skills.frameworks && (
-                <div>
-                  <strong className="text-[#111]">Frameworks:</strong> {skills.frameworks}
-                </div>
-              )}
-              {skills.tools && (
-                <div>
-                  <strong className="text-[#111]">Tools:</strong> {skills.tools}
-                </div>
-              )}
-              {skills.soft && (
-                <div>
-                  <strong className="text-[#111]">Soft Skills:</strong> {skills.soft}
-                </div>
-              )}
-            </div>
+        {skillGroups.length > 0 && (
+          <Section title={skillGroups.length === 1 ? skillGroups[0].label || "Skills" : "Skills"} template={template}>
+            {skillGroups.length === 1 ? (
+              <p className="text-[15px] leading-[1.6] text-[#333]">{skillGroups[0].value}</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[15px] leading-[1.6] text-[#333]">
+                {skillGroups.map((group) => (
+                  <div key={group.id}>
+                    <strong className="text-[#111]">{group.label || "Skills"}:</strong> {group.value}
+                  </div>
+                ))}
+              </div>
+            )}
           </Section>
         )}
       </div>

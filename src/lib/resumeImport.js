@@ -114,33 +114,35 @@ function parseProjects(lines) {
   return entries;
 }
 
-const SKILL_LABELS = [
-  { key: "languages", re: /^languages?:?/i },
-  { key: "frameworks", re: /^(frameworks?|frontend|backend):?/i },
-  { key: "tools", re: /^tools?:?/i },
-  { key: "soft", re: /^soft\s*skills?:?/i },
-];
+// Skills are now user-defined categories rather than a fixed
+// languages/frameworks/tools/soft set, so instead of matching a short
+// list of known labels, any "Label: value" line becomes its own group.
+// Lines that don't fit that shape (plain comma-separated skill lists,
+// the common case) are pooled into one catch-all "Skills" group.
+const LABELED_SKILL_LINE_RE = /^([A-Za-z][A-Za-z\s/&-]{1,28}):\s*(.+)$/;
+
+function titleCase(str) {
+  return str.replace(/\w\S*/g, (w) => w[0].toUpperCase() + w.slice(1).toLowerCase());
+}
 
 function parseSkills(lines) {
-  const skills = { languages: "", frameworks: "", tools: "", soft: "" };
+  const groups = [];
   const leftovers = [];
 
   for (const line of lines) {
-    const label = SKILL_LABELS.find((l) => l.re.test(line));
-    if (label) {
-      skills[label.key] = line.replace(label.re, "").trim();
+    const match = line.match(LABELED_SKILL_LINE_RE);
+    if (match) {
+      groups.push({ id: id(), label: titleCase(match[1].trim()), value: match[2].trim() });
     } else {
       leftovers.push(line);
     }
   }
 
-  if (leftovers.length > 0 && !skills.languages) {
-    skills.languages = leftovers.join(", ");
-  } else if (leftovers.length > 0) {
-    skills.languages += (skills.languages ? ", " : "") + leftovers.join(", ");
+  if (leftovers.length > 0) {
+    groups.push({ id: id(), label: "Skills", value: leftovers.join(", ") });
   }
 
-  return skills;
+  return groups.length > 0 ? groups : [{ id: id(), label: "Skills", value: "" }];
 }
 
 /**

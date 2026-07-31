@@ -35,10 +35,5 @@ export const createDefaultResume = () => ({
         "A short description of what you built, the problem it solves, and the technologies used.",
     },
   ],
-  skills: {
-    languages: "Skill, Skill, Skill",
-    frameworks: "Framework, Framework, Framework",
-    tools: "Tool, Tool, Tool",
-    soft: "Skill, Skill, Skill",
-  },
+  skills: [{ id: crypto.randomUUID(), label: "Skills", value: "Skill, Skill, Skill" }],
 });

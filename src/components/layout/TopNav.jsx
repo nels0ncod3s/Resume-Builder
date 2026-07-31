@@ -11,7 +11,7 @@ export default function TopNav({ title, onStartTour }) {
     <header className="shrink-0 border-b border-line bg-paper">
       <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-8">
         <a href="/" className="shrink-0 font-display text-lg font-bold text-ink md:hidden">
-          Resumely
+          Resume Pilot
         </a>
         <h1 className="hidden truncate text-sm font-semibold text-ink-soft md:block">{title}</h1>
         <button

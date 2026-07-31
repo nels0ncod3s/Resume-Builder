@@ -36,7 +36,7 @@ export const TEMPLATES = [
   {
     id: "classic-serif",
     name: "Classic Serif",
-    description: "Centered serif headline with a thin accent rule. Resumely's original look.",
+    description: "Centered serif headline with a thin accent rule. Resume Pilot's original look.",
     fonts: {
       heading: '"Playfair Display", serif',
       body: '"DM Sans", sans-serif',

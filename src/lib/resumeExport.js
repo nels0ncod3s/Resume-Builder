@@ -203,13 +203,17 @@ function renderResumeToPdf(doc, resume, template) {
     }
   }
 
-  const { languages, frameworks, tools, soft } = resume.skills || {};
-  if (languages || frameworks || tools || soft) {
-    writeSectionHeader(doc, cursor, "Skills", template);
-    writeLabeledLine(doc, cursor, "Languages", languages);
-    writeLabeledLine(doc, cursor, "Frameworks", frameworks);
-    writeLabeledLine(doc, cursor, "Tools", tools);
-    writeLabeledLine(doc, cursor, "Soft Skills", soft);
+  const skillGroups = (resume.skills || []).filter((g) => g.value?.trim());
+  if (skillGroups.length > 0) {
+    if (skillGroups.length === 1) {
+      writeSectionHeader(doc, cursor, skillGroups[0].label || "Skills", template);
+      writeParagraph(doc, cursor, skillGroups[0].value);
+    } else {
+      writeSectionHeader(doc, cursor, "Skills", template);
+      for (const group of skillGroups) {
+        writeLabeledLine(doc, cursor, group.label || "Skills", group.value);
+      }
+    }
   }
 }
 

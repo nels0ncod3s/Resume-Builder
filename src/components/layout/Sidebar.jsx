@@ -10,7 +10,7 @@ export default function Sidebar() {
   return (
     <aside className="hidden md:flex md:w-60 md:flex-col md:border-r md:border-line md:bg-paper md:py-8 md:px-4 shrink-0">
       <a href="/" className="px-2 pb-8 font-display text-xl font-bold tracking-tight text-ink">
-        Resumely
+        Resume Pilot
       </a>
       <nav className="flex flex-col gap-1">
         {links.map((link) => (

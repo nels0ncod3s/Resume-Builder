@@ -31,13 +31,14 @@ export function resumeToText(resume) {
     }
   }
 
-  const { languages, frameworks, tools, soft } = resume.skills;
-  if (languages || frameworks || tools || soft) {
+  const skillGroups = (resume.skills || []).filter((g) => g.value);
+  if (skillGroups.length > 0) {
     lines.push("", "SKILLS");
-    if (languages) lines.push(`Languages: ${languages}`);
-    if (frameworks) lines.push(`Frameworks: ${frameworks}`);
-    if (tools) lines.push(`Tools: ${tools}`);
-    if (soft) lines.push(`Soft Skills: ${soft}`);
+    if (skillGroups.length === 1) {
+      lines.push(skillGroups[0].value);
+    } else {
+      for (const group of skillGroups) lines.push(`${group.label}: ${group.value}`);
+    }
   }
 
   return lines.join("\n");
