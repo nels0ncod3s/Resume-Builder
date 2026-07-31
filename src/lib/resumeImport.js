@@ -1,5 +1,6 @@
 import { BULLET_LINE_RE, mergeLoneBulletMarkers } from "./atsAnalyzer.js";
 import { createDefaultResume } from "../data/defaultResume.js";
+import { generateId } from "./id.js";
 
 const EMAIL_RE = /[\w.+-]+@[\w-]+\.[a-z]{2,}/i;
 const PHONE_RE = /(\+?\d[\d\s().-]{7,}\d)/;
@@ -13,17 +14,18 @@ const SECTION_HEADERS = [
   { key: "education", re: /^education$/i },
   { key: "projects", re: /^projects?$/i },
   { key: "skills", re: /^(skills|technical skills)$/i },
+  { key: "achievements", re: /^(achievements?|awards?( (and|&) honors?)?|honors?)$/i },
   // Recognized so their content doesn't leak into whatever section came
   // before them, but there's no field for them in our resume model yet —
   // so they're bucketed and simply dropped rather than corrupting others.
   {
     key: "ignore",
-    re: /^(certifications?|awards?|honors?|publications?|references?|interests?|languages?( spoken)?|volunteer(ing)?)$/i,
+    re: /^(certifications?|publications?|references?|interests?|languages?( spoken)?|volunteer(ing)?)$/i,
   },
 ];
 
 function id() {
-  return crypto.randomUUID();
+  return generateId();
 }
 
 function matchHeader(line) {
@@ -94,20 +96,26 @@ function parseProjects(lines) {
   const entries = [];
   let current = null;
   for (const line of lines) {
+    if (BULLET_LINE_RE.test(line)) {
+      if (!current) current = { id: id(), name: "Project Name", description: "", bullets: [] };
+      current.bullets.push(line.replace(BULLET_LINE_RE, ""));
+      continue;
+    }
+
     const isMetadata = PROJECT_METADATA_RE.test(line) || /^\[[^\]]*\]$/.test(line);
     const looksLikeNewTitle =
       !isMetadata &&
       line.length <= 60 &&
       !/[.!?]$/.test(line) &&
-      (current === null || current.description.length > 0);
+      (current === null || current.description.length > 0 || current.bullets.length > 0);
 
     if (looksLikeNewTitle) {
       if (current) entries.push(current);
-      current = { id: id(), name: line, description: "" };
+      current = { id: id(), name: line, description: "", bullets: [] };
     } else if (current) {
       current.description = current.description ? `${current.description} ${line}` : line;
     } else {
-      current = { id: id(), name: line, description: "" };
+      current = { id: id(), name: line, description: "", bullets: [] };
     }
   }
   if (current) entries.push(current);
@@ -123,6 +131,19 @@ const LABELED_SKILL_LINE_RE = /^([A-Za-z][A-Za-z\s/&-]{1,28}):\s*(.+)$/;
 
 function titleCase(str) {
   return str.replace(/\w\S*/g, (w) => w[0].toUpperCase() + w.slice(1).toLowerCase());
+}
+
+/** Achievements/Awards sections are almost always one line per entry
+ * (often bullet- or dash-prefixed) rather than the multi-line blocks
+ * Experience/Education have, so this stays a flat one-line-in, one-entry-out
+ * mapping — any date found on the line is pulled out into its own field,
+ * same as the other section parsers. */
+function parseAchievements(lines) {
+  return mergeLoneBulletMarkers(lines).map((line) => {
+    const cleaned = line.replace(BULLET_LINE_RE, "").trim();
+    const { text, dates } = extractDates(cleaned);
+    return { id: id(), title: text || cleaned || "Achievement", dates, description: "" };
+  });
 }
 
 function parseSkills(lines) {
@@ -211,6 +232,7 @@ export function parseResumeText(rawText) {
   if (sections.experience?.length) resume.experience = parseExperience(sections.experience);
   if (sections.education?.length) resume.education = parseEducation(sections.education);
   if (sections.projects?.length) resume.projects = parseProjects(sections.projects);
+  if (sections.achievements?.length) resume.achievements = parseAchievements(sections.achievements);
   if (sections.skills?.length) resume.skills = parseSkills(sections.skills);
 
   return resume;

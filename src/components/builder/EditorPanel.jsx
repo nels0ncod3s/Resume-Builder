@@ -1,4 +1,5 @@
 import TemplatePicker from "../shared/TemplatePicker.jsx";
+import { generateId } from "../../lib/id.js";
 
 const inputCls =
   "w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink placeholder:text-ink-soft/50 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink";
@@ -17,7 +18,7 @@ export default function EditorPanel({ resume, setResume }) {
   const addSkillGroup = () =>
     setResume((r) => ({
       ...r,
-      skills: [...r.skills, { id: crypto.randomUUID(), label: "Skills", value: "" }],
+      skills: [...r.skills, { id: generateId(), label: "Skills", value: "" }],
     }));
 
   const removeSkillGroup = (id) =>
@@ -35,29 +36,33 @@ export default function EditorPanel({ resume, setResume }) {
   const removeItem = (listKey, id) =>
     setResume((r) => ({ ...r, [listKey]: r[listKey].filter((item) => item.id !== id) }));
 
-  const updateBullet = (expId, index, value) =>
+  // Shared by Experience and Projects — both store an optional `bullets`
+  // array on each entry, keyed by list (listKey) + entry id (itemId).
+  const updateBullet = (listKey, itemId, index, value) =>
     setResume((r) => ({
       ...r,
-      experience: r.experience.map((exp) =>
-        exp.id === expId
-          ? { ...exp, bullets: exp.bullets.map((b, i) => (i === index ? value : b)) }
-          : exp
+      [listKey]: r[listKey].map((entry) =>
+        entry.id === itemId
+          ? { ...entry, bullets: entry.bullets.map((b, i) => (i === index ? value : b)) }
+          : entry
       ),
     }));
 
-  const addBullet = (expId) =>
+  const addBullet = (listKey, itemId) =>
     setResume((r) => ({
       ...r,
-      experience: r.experience.map((exp) =>
-        exp.id === expId ? { ...exp, bullets: [...exp.bullets, ""] } : exp
+      [listKey]: r[listKey].map((entry) =>
+        entry.id === itemId ? { ...entry, bullets: [...(entry.bullets ?? []), ""] } : entry
       ),
     }));
 
-  const removeBullet = (expId, index) =>
+  const removeBullet = (listKey, itemId, index) =>
     setResume((r) => ({
       ...r,
-      experience: r.experience.map((exp) =>
-        exp.id === expId ? { ...exp, bullets: exp.bullets.filter((_, i) => i !== index) } : exp
+      [listKey]: r[listKey].map((entry) =>
+        entry.id === itemId
+          ? { ...entry, bullets: entry.bullets.filter((_, i) => i !== index) }
+          : entry
       ),
     }));
 
@@ -101,7 +106,7 @@ export default function EditorPanel({ resume, setResume }) {
 
       <Field
         label="Education"
-        onAdd={() => addItem("education", () => ({ id: crypto.randomUUID(), degree: "Degree Name", institution: "Institution Name, City", dates: "" }))}
+        onAdd={() => addItem("education", () => ({ id: generateId(), degree: "Degree Name", institution: "Institution Name, City", dates: "" }))}
         onRemoveSection={resume.education.length > 0 ? () => update("education", []) : undefined}
       >
         {resume.education.map((item) => (
@@ -118,7 +123,7 @@ export default function EditorPanel({ resume, setResume }) {
 
       <Field
         label="Experience"
-        onAdd={() => addItem("experience", () => ({ id: crypto.randomUUID(), title: "Job Title", company: "Company Name", dates: "", bullets: [""] }))}
+        onAdd={() => addItem("experience", () => ({ id: generateId(), title: "Job Title", company: "Company Name", dates: "", bullets: [""] }))}
         onRemoveSection={resume.experience.length > 0 ? () => update("experience", []) : undefined}
       >
         {resume.experience.map((item) => (
@@ -135,14 +140,14 @@ export default function EditorPanel({ resume, setResume }) {
                     className={inputCls}
                     placeholder="Bullet point"
                     value={bullet}
-                    onChange={(e) => updateBullet(item.id, i, e.target.value)}
+                    onChange={(e) => updateBullet("experience", item.id, i, e.target.value)}
                   />
-                  <button type="button" onClick={() => removeBullet(item.id, i)} className="shrink-0 rounded-lg border border-line px-2 text-xs text-ink-soft hover:text-ink">
+                  <button type="button" onClick={() => removeBullet("experience", item.id, i)} className="shrink-0 rounded-lg border border-line px-2 text-xs text-ink-soft hover:text-ink">
                     ✕
                   </button>
                 </div>
               ))}
-              <button type="button" onClick={() => addBullet(item.id)} className={`w-fit ${smallActionCls}`}>
+              <button type="button" onClick={() => addBullet("experience", item.id)} className={`w-fit ${smallActionCls}`}>
                 + Add bullet
               </button>
             </div>
@@ -153,14 +158,66 @@ export default function EditorPanel({ resume, setResume }) {
 
       <Field
         label="Projects"
-        onAdd={() => addItem("projects", () => ({ id: crypto.randomUUID(), name: "Project Name", description: "" }))}
+        onAdd={() => addItem("projects", () => ({ id: generateId(), name: "Project Name", description: "", bullets: [] }))}
         onRemoveSection={resume.projects.length > 0 ? () => update("projects", []) : undefined}
       >
         {resume.projects.map((item) => (
           <div key={item.id} className="mb-3 rounded-lg border border-line p-3">
             <input className={inputCls} placeholder="Project name" value={item.name} onChange={(e) => updateItem("projects", item.id, "name", e.target.value)} />
             <textarea rows={2} className={`${inputCls} mt-2`} placeholder="Description" value={item.description} onChange={(e) => updateItem("projects", item.id, "description", e.target.value)} />
+            <div className="mt-2 flex flex-col gap-1.5">
+              {(item.bullets ?? []).map((bullet, i) => (
+                <div key={i} className="flex gap-1.5">
+                  <input
+                    className={inputCls}
+                    placeholder="Bullet point"
+                    value={bullet}
+                    onChange={(e) => updateBullet("projects", item.id, i, e.target.value)}
+                  />
+                  <button type="button" onClick={() => removeBullet("projects", item.id, i)} className="shrink-0 rounded-lg border border-line px-2 text-xs text-ink-soft hover:text-ink">
+                    ✕
+                  </button>
+                </div>
+              ))}
+              <button type="button" onClick={() => addBullet("projects", item.id)} className={`w-fit ${smallActionCls}`}>
+                + Add bullet
+              </button>
+            </div>
             <RemoveButton onClick={() => removeItem("projects", item.id)} />
+          </div>
+        ))}
+      </Field>
+
+      <Field
+        label="Achievements"
+        onAdd={() =>
+          addItem("achievements", () => ({
+            id: generateId(),
+            title: "Achievement or Award Name",
+            dates: "",
+            description: "",
+          }))
+        }
+        onRemoveSection={resume.achievements?.length > 0 ? () => update("achievements", []) : undefined}
+      >
+        <p className="mb-3 -mt-1 text-xs text-ink-soft">
+          Awards, certifications, publications, competition wins — anything worth calling out on
+          its own.
+        </p>
+        {(resume.achievements ?? []).map((item) => (
+          <div key={item.id} className="mb-3 rounded-lg border border-line p-3">
+            <div className="grid grid-cols-2 gap-2">
+              <input className={inputCls} placeholder="Achievement" value={item.title} onChange={(e) => updateItem("achievements", item.id, "title", e.target.value)} />
+              <input className={inputCls} placeholder="Date (optional)" value={item.dates} onChange={(e) => updateItem("achievements", item.id, "dates", e.target.value)} />
+            </div>
+            <textarea
+              rows={2}
+              className={`${inputCls} mt-2`}
+              placeholder="Description (optional)"
+              value={item.description}
+              onChange={(e) => updateItem("achievements", item.id, "description", e.target.value)}
+            />
+            <RemoveButton onClick={() => removeItem("achievements", item.id)} />
           </div>
         ))}
       </Field>
@@ -170,7 +227,7 @@ export default function EditorPanel({ resume, setResume }) {
         onAdd={addSkillGroup}
         onRemoveSection={
           resume.skills.some((g) => g.value)
-            ? () => update("skills", [{ id: crypto.randomUUID(), label: "Skills", value: "" }])
+            ? () => update("skills", [{ id: generateId(), label: "Skills", value: "" }])
             : undefined
         }
       >

@@ -199,7 +199,16 @@ function renderResumeToPdf(doc, resume, template) {
       doc.setTextColor(17, 17, 17);
       doc.text(item.name || "", MARGIN_X, cursor.y);
       cursor.y += 14;
-      writeParagraph(doc, cursor, item.description, { spaceAfter: 6 });
+      writeParagraph(doc, cursor, item.description, { spaceAfter: item.bullets?.length ? 0 : 6 });
+      writeBullets(doc, cursor, (item.bullets || []).filter(Boolean));
+    }
+  }
+
+  if (resume.achievements?.length) {
+    writeSectionHeader(doc, cursor, "Achievements", template);
+    for (const item of resume.achievements) {
+      writeEntryHeader(doc, cursor, item.title, item.dates, template);
+      writeParagraph(doc, cursor, item.description, { spaceAfter: 4 });
     }
   }
 

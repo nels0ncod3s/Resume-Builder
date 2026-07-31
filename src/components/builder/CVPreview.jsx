@@ -58,8 +58,31 @@ const CVPreview = forwardRef(function CVPreview({ resume }, ref) {
             {resume.projects.map((item) => (
               <div key={item.id} className="mb-3.5">
                 <h3 className="text-base font-light text-[#111]">{item.name}</h3>
-                <p className="text-[15px] leading-[1.65] text-[#333]">{item.description}</p>
+                {item.description && (
+                  <p className="text-[15px] leading-[1.65] text-[#333]">{item.description}</p>
+                )}
+                {item.bullets?.length > 0 && (
+                  <ul className="mt-1 list-disc pl-[18px]">
+                    {item.bullets.map((bullet, i) => (
+                      <li key={i} className="text-[15px] leading-[1.7] text-[#333]">
+                        {bullet}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
+            ))}
+          </Section>
+        )}
+
+        {resume.achievements?.length > 0 && (
+          <Section title="Achievements" template={template}>
+            {resume.achievements.map((item) => (
+              <Entry key={item.id} title={item.title} dates={item.dates}>
+                {item.description && (
+                  <p className="text-[15px] leading-[1.65] text-[#333]">{item.description}</p>
+                )}
+              </Entry>
             ))}
           </Section>
         )}

@@ -1,4 +1,5 @@
 import { DEFAULT_TEMPLATE_ID } from "./templates.js";
+import { generateId } from "../lib/id.js";
 
 export const createDefaultResume = () => ({
   template: DEFAULT_TEMPLATE_ID,
@@ -12,7 +13,7 @@ export const createDefaultResume = () => ({
     "A brief, punchy professional summary goes here. Cover who you are, the kind of work you do, and what you're looking for next in two to three sentences tailored to the role.",
   education: [
     {
-      id: crypto.randomUUID(),
+      id: generateId(),
       degree: "Degree Name",
       institution: "Institution Name, City",
       dates: "Month Year – Month Year",
@@ -20,7 +21,7 @@ export const createDefaultResume = () => ({
   ],
   experience: [
     {
-      id: crypto.randomUUID(),
+      id: generateId(),
       title: "Job Title",
       company: "Company Name",
       dates: "Month Year – Month Year",
@@ -29,11 +30,20 @@ export const createDefaultResume = () => ({
   ],
   projects: [
     {
-      id: crypto.randomUUID(),
+      id: generateId(),
       name: "Project Name",
       description:
         "A short description of what you built, the problem it solves, and the technologies used.",
+      bullets: [],
     },
   ],
-  skills: [{ id: crypto.randomUUID(), label: "Skills", value: "Skill, Skill, Skill" }],
+  achievements: [
+    {
+      id: generateId(),
+      title: "Achievement or Award Name",
+      dates: "Year",
+      description: "A brief line on the achievement and why it mattered.",
+    },
+  ],
+  skills: [{ id: generateId(), label: "Skills", value: "Skill, Skill, Skill" }],
 });

@@ -27,7 +27,16 @@ export function resumeToText(resume) {
     lines.push("", "PROJECTS");
     for (const item of resume.projects) {
       lines.push(item.name);
-      lines.push(item.description);
+      if (item.description) lines.push(item.description);
+      for (const bullet of item.bullets ?? []) lines.push(`• ${bullet}`);
+    }
+  }
+
+  if (resume.achievements?.length > 0) {
+    lines.push("", "ACHIEVEMENTS");
+    for (const item of resume.achievements) {
+      lines.push(item.dates ? `${item.title} (${item.dates})` : item.title);
+      if (item.description) lines.push(item.description);
     }
   }
 
