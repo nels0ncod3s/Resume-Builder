@@ -1,4 +1,5 @@
-import { MARGIN_X, MARGIN_TOP, createCursor, writeParagraph } from "./pdfLayout.js";
+import { PAGE_WIDTH, PAGE_HEIGHT, MARGIN_X, MARGIN_TOP, createCursor, writeParagraph } from "./pdfLayout.js";
+import { getTemplate } from "../data/templates.js";
 
 export { downloadAsImage } from "./domCapture.js";
 
@@ -12,29 +13,66 @@ function slugify(name) {
   );
 }
 
-function renderCoverLetterToPdf(doc, letter) {
-  const cursor = createCursor();
-  cursor.y = MARGIN_TOP;
+// Mirrors CoverLetterPreview.jsx's CoverLetterHeader variants.
+function writeHeaderBand(doc, cursor, letter, pdf) {
+  const bandHeight = 92;
+  doc.setFillColor(...pdf.accentRGB);
+  doc.rect(0, 0, PAGE_WIDTH, bandHeight, "F");
 
-  doc.setFont("helvetica", "bold");
+  cursor.y = 38;
+  doc.setFont(pdf.headingFont, "bold");
+  doc.setFontSize(16);
+  doc.setTextColor(255, 255, 255);
+  doc.text(letter.senderName || "", MARGIN_X, cursor.y);
+  cursor.y += 15;
+
+  if (letter.senderTagline) {
+    doc.setFont(pdf.bodyFont, "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(255, 255, 255);
+    doc.text(letter.senderTagline, MARGIN_X, cursor.y);
+    cursor.y += 13;
+  }
+
+  const contactLine = [letter.senderEmail, letter.senderPhone, letter.senderLocation].filter(Boolean).join("   |   ");
+  if (contactLine) {
+    doc.setFont(pdf.bodyFont, "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(255, 255, 255);
+    doc.text(contactLine, MARGIN_X, cursor.y);
+  }
+
+  cursor.y = bandHeight + 34;
+}
+
+function writeHeaderPlain(doc, cursor, letter, template) {
+  const { pdf } = template;
+  if (template.headerStyle === "left-rule") {
+    doc.setFillColor(...pdf.accentRGB);
+    doc.rect(0, 0, 4, PAGE_HEIGHT, "F");
+  } else {
+    doc.setFillColor(...pdf.accentRGB);
+    doc.rect(0, 0, PAGE_WIDTH, 4, "F");
+  }
+
+  cursor.y = MARGIN_TOP;
+  doc.setFont(pdf.headingFont, "bold");
   doc.setFontSize(15);
   doc.setTextColor(17, 17, 17);
   doc.text(letter.senderName || "", MARGIN_X, cursor.y);
   cursor.y += 17;
 
   if (letter.senderTagline) {
-    doc.setFont("helvetica", "normal");
+    doc.setFont(pdf.bodyFont, "normal");
     doc.setFontSize(10);
     doc.setTextColor(85, 85, 85);
     doc.text(letter.senderTagline, MARGIN_X, cursor.y);
     cursor.y += 14;
   }
 
-  const contactLine = [letter.senderEmail, letter.senderPhone, letter.senderLocation]
-    .filter(Boolean)
-    .join("   |   ");
+  const contactLine = [letter.senderEmail, letter.senderPhone, letter.senderLocation].filter(Boolean).join("   |   ");
   if (contactLine) {
-    doc.setFont("helvetica", "normal");
+    doc.setFont(pdf.bodyFont, "normal");
     doc.setFontSize(9.5);
     doc.setTextColor(119, 119, 119);
     doc.text(contactLine, MARGIN_X, cursor.y);
@@ -42,6 +80,16 @@ function renderCoverLetterToPdf(doc, letter) {
   }
 
   cursor.y += 18;
+}
+
+function renderCoverLetterToPdf(doc, letter, template) {
+  const cursor = createCursor();
+
+  if (template.pdf.headerBand) {
+    writeHeaderBand(doc, cursor, letter, template.pdf);
+  } else {
+    writeHeaderPlain(doc, cursor, letter, template);
+  }
 
   if (letter.date) {
     doc.setFont("helvetica", "normal");
@@ -87,10 +135,13 @@ function renderCoverLetterToPdf(doc, letter) {
 }
 
 /** Builds and downloads the cover letter as a real, text-based PDF so it
- * stays selectable and re-importable (same rationale as resumeExport.js). */
+ * stays selectable and re-importable (same rationale as resumeExport.js).
+ * Reads letter.template internally, same as resumeExport.js reads
+ * resume.template — keeps the template as the single field on the data
+ * object rather than a second argument every caller has to remember. */
 export async function downloadAsPdf(coverLetter, filename) {
   const { default: jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
-  renderCoverLetterToPdf(doc, coverLetter);
+  renderCoverLetterToPdf(doc, coverLetter, getTemplate(coverLetter.template));
   doc.save(filename || `${slugify(coverLetter.senderName)}-cover-letter.pdf`);
 }

@@ -1,4 +1,7 @@
+import { DEFAULT_TEMPLATE_ID } from "./templates.js";
+
 export const createDefaultResume = () => ({
+  template: DEFAULT_TEMPLATE_ID,
   name: "Your Name",
   tagline: "Your Job Title",
   location: "City, Country",

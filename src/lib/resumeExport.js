@@ -7,6 +7,7 @@ import {
   writeParagraph,
   writeLabeledLine,
 } from "./pdfLayout.js";
+import { getTemplate } from "../data/templates.js";
 
 export { downloadAsImage } from "./domCapture.js";
 
@@ -20,46 +21,94 @@ function slugify(name) {
   );
 }
 
-function writeHeader(doc, cursor, resume) {
-  doc.setFillColor(26, 26, 26);
+// Mirrors CVPreview.jsx's ResumeHeader variants. `pdf.headingFont` /
+// `pdf.bodyFont` are jsPDF's built-in "times"/"helvetica" — see the note
+// in data/templates.js on why real webfonts aren't embedded here.
+function writeHeader(doc, cursor, resume, template) {
+  const { pdf } = template;
+
+  if (pdf.headerBand) {
+    const bandHeight = 118;
+    doc.setFillColor(...pdf.accentRGB);
+    doc.rect(0, 0, PAGE_WIDTH, bandHeight, "F");
+
+    cursor.y = 46;
+    doc.setFont(pdf.headingFont, "bold");
+    doc.setFontSize(24);
+    doc.setTextColor(255, 255, 255);
+    doc.text(resume.name || "", PAGE_WIDTH / 2, cursor.y, { align: "center" });
+    cursor.y += 19;
+
+    const taglineLine = [resume.tagline, resume.location].filter(Boolean).join("   |   ");
+    if (taglineLine) {
+      doc.setFont(pdf.bodyFont, "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(255, 255, 255);
+      doc.text(taglineLine.toUpperCase(), PAGE_WIDTH / 2, cursor.y, { align: "center" });
+      cursor.y += 15;
+    }
+
+    const contactLine = [resume.email, resume.phone, resume.link].filter(Boolean).join("   |   ");
+    if (contactLine) {
+      doc.setFont(pdf.bodyFont, "normal");
+      doc.setFontSize(9.5);
+      doc.setTextColor(255, 255, 255);
+      doc.text(contactLine, PAGE_WIDTH / 2, cursor.y, { align: "center" });
+    }
+
+    cursor.y = bandHeight + 26;
+    return;
+  }
+
+  doc.setFillColor(...pdf.accentRGB);
   doc.rect(0, 0, PAGE_WIDTH, 4, "F");
   cursor.y = MARGIN_TOP + 14;
 
-  doc.setFont("times", "bold");
+  const align = pdf.headerAlign === "left" ? "left" : "center";
+  const x = align === "left" ? MARGIN_X : PAGE_WIDTH / 2;
+
+  doc.setFont(pdf.headingFont, "bold");
   doc.setFontSize(25);
   doc.setTextColor(17, 17, 17);
-  doc.text(resume.name || "", PAGE_WIDTH / 2, cursor.y, { align: "center" });
+  doc.text(resume.name || "", x, cursor.y, { align });
   cursor.y += 20;
 
   const taglineLine = [resume.tagline, resume.location].filter(Boolean).join("   |   ");
   if (taglineLine) {
-    doc.setFont("helvetica", "bold");
+    doc.setFont(pdf.bodyFont, "bold");
     doc.setFontSize(10);
-    doc.setTextColor(85, 85, 85);
-    doc.text(taglineLine.toUpperCase(), PAGE_WIDTH / 2, cursor.y, { align: "center" });
+    doc.setTextColor(...pdf.accentRGB);
+    doc.text(taglineLine.toUpperCase(), x, cursor.y, { align });
     cursor.y += 15;
   }
 
   const contactLine = [resume.email, resume.phone, resume.link].filter(Boolean).join("   |   ");
   if (contactLine) {
-    doc.setFont("helvetica", "normal");
+    doc.setFont(pdf.bodyFont, "normal");
     doc.setFontSize(9.5);
     doc.setTextColor(119, 119, 119);
-    doc.text(contactLine, PAGE_WIDTH / 2, cursor.y, { align: "center" });
+    doc.text(contactLine, x, cursor.y, { align });
     cursor.y += 20;
+  }
+
+  if (align === "left") {
+    doc.setDrawColor(...pdf.accentRGB);
+    doc.setLineWidth(1.25);
+    doc.line(MARGIN_X, cursor.y, MARGIN_X + CONTENT_WIDTH, cursor.y);
+    cursor.y += 16;
   }
 }
 
-function writeSectionHeader(doc, cursor, title) {
+function writeSectionHeader(doc, cursor, title, template) {
   cursor.ensureSpace(doc, 34);
   cursor.y += 12;
-  doc.setFont("times", "bold");
+  doc.setFont(template.pdf.headingFont, "bold");
   doc.setFontSize(12.5);
   doc.setTextColor(17, 17, 17);
   doc.text(title.toUpperCase(), MARGIN_X, cursor.y);
   cursor.y += 5;
-  doc.setDrawColor(17, 17, 17);
-  doc.setLineWidth(0.75);
+  doc.setDrawColor(...template.pdf.accentRGB);
+  doc.setLineWidth(0.9);
   doc.line(MARGIN_X, cursor.y, MARGIN_X + CONTENT_WIDTH, cursor.y);
   cursor.y += 15;
 }
@@ -69,14 +118,14 @@ function writeSectionHeader(doc, cursor, title) {
 // baseline; pdfTextExtract.js's word-gap heuristic reliably rejoins them
 // into "Title Month Year – Month Year" on re-extraction, which is exactly
 // the shape resumeImport.js's date-stripping parser expects.
-function writeEntryHeader(doc, cursor, title, dates) {
+function writeEntryHeader(doc, cursor, title, dates, template) {
   cursor.ensureSpace(doc, 15);
-  doc.setFont("helvetica", "normal");
+  doc.setFont(template.pdf.bodyFont, "normal");
   doc.setFontSize(11.5);
   doc.setTextColor(17, 17, 17);
   doc.text(title || "", MARGIN_X, cursor.y);
   if (dates) {
-    doc.setFont("times", "italic");
+    doc.setFont(template.pdf.headingFont, "italic");
     doc.setFontSize(9);
     doc.setTextColor(120, 120, 120);
     const w = doc.getTextWidth(dates);
@@ -113,28 +162,28 @@ function writeBullets(doc, cursor, bullets) {
   cursor.y += 3;
 }
 
-function renderResumeToPdf(doc, resume) {
+function renderResumeToPdf(doc, resume, template) {
   const cursor = createCursor();
-  writeHeader(doc, cursor, resume);
+  writeHeader(doc, cursor, resume, template);
 
   if (resume.profile?.trim()) {
-    writeSectionHeader(doc, cursor, "Profile");
+    writeSectionHeader(doc, cursor, "Profile", template);
     writeParagraph(doc, cursor, resume.profile);
   }
 
   if (resume.education?.length) {
-    writeSectionHeader(doc, cursor, "Education");
+    writeSectionHeader(doc, cursor, "Education", template);
     for (const item of resume.education) {
-      writeEntryHeader(doc, cursor, item.degree, item.dates);
+      writeEntryHeader(doc, cursor, item.degree, item.dates, template);
       writeSubLine(doc, cursor, item.institution);
       cursor.y += 4;
     }
   }
 
   if (resume.experience?.length) {
-    writeSectionHeader(doc, cursor, "Experience");
+    writeSectionHeader(doc, cursor, "Experience", template);
     for (const item of resume.experience) {
-      writeEntryHeader(doc, cursor, item.title, item.dates);
+      writeEntryHeader(doc, cursor, item.title, item.dates, template);
       writeSubLine(doc, cursor, item.company);
       writeBullets(doc, cursor, (item.bullets || []).filter(Boolean));
       cursor.y += 3;
@@ -142,7 +191,7 @@ function renderResumeToPdf(doc, resume) {
   }
 
   if (resume.projects?.length) {
-    writeSectionHeader(doc, cursor, "Projects");
+    writeSectionHeader(doc, cursor, "Projects", template);
     for (const item of resume.projects) {
       cursor.ensureSpace(doc, 15);
       doc.setFont("helvetica", "normal");
@@ -156,7 +205,7 @@ function renderResumeToPdf(doc, resume) {
 
   const { languages, frameworks, tools, soft } = resume.skills || {};
   if (languages || frameworks || tools || soft) {
-    writeSectionHeader(doc, cursor, "Skills");
+    writeSectionHeader(doc, cursor, "Skills", template);
     writeLabeledLine(doc, cursor, "Languages", languages);
     writeLabeledLine(doc, cursor, "Frameworks", frameworks);
     writeLabeledLine(doc, cursor, "Tools", tools);
@@ -166,10 +215,12 @@ function renderResumeToPdf(doc, resume) {
 
 /** Builds and downloads the resume as a real, text-based PDF (no
  * screenshot involved) so it stays fully ATS-parseable and re-importable
- * after download. Takes the resume data object, not a DOM node. */
+ * after download. Takes the resume data object, not a DOM node. Reads
+ * resume.template internally (same source of truth the on-screen preview
+ * uses) so callers never have to thread the template through separately. */
 export async function downloadAsPdf(resume, filename) {
   const { default: jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
-  renderResumeToPdf(doc, resume);
+  renderResumeToPdf(doc, resume, getTemplate(resume.template));
   doc.save(filename || `${slugify(resume.name)}.pdf`);
 }

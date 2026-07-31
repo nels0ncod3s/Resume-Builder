@@ -1,15 +1,20 @@
 import { useRef, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import { useCoverLetterData } from "../lib/coverLetterStorage.js";
 import CoverLetterEditorPanel from "../components/coverletter/CoverLetterEditorPanel.jsx";
 import ImportCoverLetterPdfButton from "../components/coverletter/ImportCoverLetterPdfButton.jsx";
 import CoverLetterPreview from "../components/coverletter/CoverLetterPreview.jsx";
 import CVScaledViewport from "../components/builder/CVScaledViewport.jsx";
 import { downloadAsImage, downloadAsPdf } from "../lib/coverLetterExport.js";
+import { useCoverLetterTour } from "../components/onboarding/useProductTour.js";
 
 export default function CoverLetterPage() {
   const [coverLetter, setCoverLetter] = useCoverLetterData();
   const previewRef = useRef(null);
   const [busy, setBusy] = useState(null);
+  const { registerTour } = useOutletContext();
+
+  useCoverLetterTour(registerTour);
 
   async function handleImage() {
     if (!previewRef.current || busy) return;
@@ -48,6 +53,7 @@ export default function CoverLetterPage() {
         <div className="flex justify-center gap-3 py-6">
           <button
             type="button"
+            data-tour="cl-download-image"
             disabled={busy !== null}
             onClick={handleImage}
             className="rounded-full border border-line bg-paper px-6 py-2.5 text-sm font-semibold text-ink transition-colors hover:border-ink disabled:opacity-50"
@@ -56,6 +62,7 @@ export default function CoverLetterPage() {
           </button>
           <button
             type="button"
+            data-tour="cl-download-pdf"
             disabled={busy !== null}
             onClick={handlePdf}
             className="rounded-full bg-ink px-6 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"

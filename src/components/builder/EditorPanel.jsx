@@ -1,3 +1,5 @@
+import TemplatePicker from "../shared/TemplatePicker.jsx";
+
 const inputCls =
   "w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink placeholder:text-ink-soft/50 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink";
 const labelCls = "mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft";
@@ -52,6 +54,10 @@ export default function EditorPanel({ resume, setResume }) {
 
   return (
     <div data-tour="editor-panel" className="flex flex-col gap-8 p-6">
+      <Field label="Design">
+        <TemplatePicker value={resume.template} onChange={(id) => update("template", id)} />
+      </Field>
+
       <Field label="Header">
         <div className="grid grid-cols-2 gap-3">
           <Labeled label="Full name">

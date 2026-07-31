@@ -1,8 +1,11 @@
+import { DEFAULT_TEMPLATE_ID } from "./templates.js";
+
 function today() {
   return new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 }
 
 export const createDefaultCoverLetter = () => ({
+  template: DEFAULT_TEMPLATE_ID,
   senderName: "Your Name",
   senderTagline: "Your Job Title",
   senderEmail: "youremail@example.com",
