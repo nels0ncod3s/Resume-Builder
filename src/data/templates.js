@@ -19,15 +19,16 @@
  *   - "band":          full-bleed accent-colored header block, white text.
  *
  * `pdf.headingFont` / `pdf.bodyFont` intentionally map to jsPDF's built-in
- * standard fonts ("times" | "helvetica") rather than embedding the actual
- * on-screen webfonts (Playfair Display / DM Sans). Embedding real fonts in
- * jsPDF means shipping base64 font files and calling doc.addFont() for
- * every weight/style used, which is a meaningfully heavier and slower
- * pipeline. Since the resume/cover letter PDFs are drawn as real vector
- * text (see pdfLayout.js) rather than screenshotted, they need to stay on
- * fonts jsPDF ships natively to guarantee crisp, fast, always-available
- * export — the visual pairing comes from serif-vs-sans + accent color, not
- * from matching the exact webfont.
+ * standard fonts ("times" | "helvetica" | "courier") rather than embedding
+ * the actual on-screen webfonts (Playfair Display / DM Sans / Space Mono).
+ * Embedding real fonts in jsPDF means shipping base64 font files and
+ * calling doc.addFont() for every weight/style used, which is a
+ * meaningfully heavier and slower pipeline. Since the resume/cover letter
+ * PDFs are drawn as real vector text (see pdfLayout.js) rather than
+ * screenshotted, they need to stay on fonts jsPDF ships natively to
+ * guarantee crisp, fast, always-available export — the visual pairing
+ * comes from serif/sans/mono + accent color, not from matching the exact
+ * webfont.
  */
 
 export const DEFAULT_TEMPLATE_ID = "classic-serif";
@@ -87,6 +88,48 @@ export const TEMPLATES = [
       bodyFont: "helvetica",
       accentRGB: [124, 45, 18],
       headerBand: true,
+      headerAlign: "center",
+    },
+  },
+  {
+    id: "code-clean",
+    name: "Code Clean",
+    description:
+      "Left-aligned monospace headline, sharp accent underline. Built for engineering and technical resumes.",
+    fonts: {
+      heading: '"Space Mono", monospace',
+      body: '"DM Sans", sans-serif',
+    },
+    accent: "#4338ca",
+    headerStyle: "left-rule",
+    swatch: { bg: "#ffffff", accent: "#4338ca" },
+    pdf: {
+      // jsPDF's built-in Courier is the closest standard font to a
+      // monospace webfont without embedding one — see the file-level note
+      // above on why templates stick to jsPDF's native fonts.
+      headingFont: "courier",
+      bodyFont: "helvetica",
+      accentRGB: [67, 56, 202],
+      headerBand: false,
+      headerAlign: "left",
+    },
+  },
+  {
+    id: "quiet-sans",
+    name: "Quiet Sans",
+    description: "Centered sans-serif headline with a soft accent rule. Understated and easy to scan.",
+    fonts: {
+      heading: '"DM Sans", sans-serif',
+      body: '"DM Sans", sans-serif',
+    },
+    accent: "#1d4ed8",
+    headerStyle: "centered-rule",
+    swatch: { bg: "#ffffff", accent: "#1d4ed8" },
+    pdf: {
+      headingFont: "helvetica",
+      bodyFont: "helvetica",
+      accentRGB: [29, 78, 216],
+      headerBand: false,
       headerAlign: "center",
     },
   },

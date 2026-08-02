@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createDefaultResume } from "../data/defaultResume";
+import { createDefaultResume, sanitizeResume } from "../data/defaultResume";
 
 const STORAGE_KEY = "resumely.resume.v1";
 
@@ -7,7 +7,7 @@ function loadResume() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return createDefaultResume();
-    return { ...createDefaultResume(), ...JSON.parse(raw) };
+    return sanitizeResume(JSON.parse(raw));
   } catch {
     return createDefaultResume();
   }
