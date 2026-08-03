@@ -10,7 +10,7 @@ const CVPreview = forwardRef(function CVPreview({ resume }, ref) {
   return (
     <div
       ref={ref}
-      className="relative h-[1123px] w-[794px] shrink-0 overflow-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.18)]"
+      className="relative h-[1123px] w-[794px] shrink-0 overflow-y-auto overflow-x-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.18)]"
       style={{ fontFamily: template.fonts.body }}
     >
       {isLeftRule && (
