@@ -6,10 +6,11 @@ import ImportPdfButton from "../components/builder/ImportPdfButton.jsx";
 import CVPreview from "../components/builder/CVPreview.jsx";
 import CVScaledViewport from "../components/builder/CVScaledViewport.jsx";
 import DownloadBar from "../components/builder/DownloadBar.jsx";
+import SaveToast from "../components/builder/SaveToast.jsx";
 import { useBuilderTour } from "../components/onboarding/useProductTour.js";
 
 export default function BuilderPage() {
-  const [resume, setResume] = useResumeData();
+  const [resume, setResume, saveStatus] = useResumeData();
   const cvRef = useRef(null);
   const { registerTour } = useOutletContext();
 
@@ -31,6 +32,7 @@ export default function BuilderPage() {
         </div>
         <DownloadBar cvRef={cvRef} resume={resume} />
       </div>
+      <SaveToast status={saveStatus} />
     </div>
   );
 }

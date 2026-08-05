@@ -1,16 +1,137 @@
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import { getTemplate } from "../../data/templates.js";
+import { DEFAULT_SECTION_ORDER } from "../../data/defaultResume.js";
 
-const CVPreview = forwardRef(function CVPreview({ resume }, ref) {
+// One A4 page at the preview's 96dpi-equivalent pixel size. Used only to
+// draw page-break guides — the real PDF paginates independently (see
+// lib/pdfLayout.js) using point-based measurements, so these are an
+// approximation of where a page break will fall, not an exact match.
+const PAGE_HEIGHT_PX = 1123;
+
+const CVPreview = forwardRef(function CVPreview({ resume }, forwardedRef) {
   const template = getTemplate(resume.template);
   const skillGroups = resume.skills.filter((g) => g.value?.trim());
   const isBand = template.headerStyle === "band";
   const isLeftRule = template.headerStyle === "left-rule";
+  const sectionOrder = resume.sectionOrder?.length ? resume.sectionOrder : DEFAULT_SECTION_ORDER;
+
+  // Measures the rendered height of the page so we can draw a guide line
+  // wherever content crosses a page boundary — the white "paper" itself
+  // already grows with content (min-h, not h, below), so nothing is ever
+  // clipped; this just shows where page 2, 3, etc. will start.
+  const nodeRef = useRef(null);
+  const [pageCount, setPageCount] = useState(1);
+
+  useEffect(() => {
+    const node = nodeRef.current;
+    if (!node) return;
+    const measure = () => setPageCount(Math.max(1, Math.ceil(node.offsetHeight / PAGE_HEIGHT_PX)));
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [resume]);
+
+  const setRefs = (el) => {
+    nodeRef.current = el;
+    if (typeof forwardedRef === "function") forwardedRef(el);
+    else if (forwardedRef) forwardedRef.current = el;
+  };
+
+  const sections = {
+    profile: () =>
+      resume.profile.trim() && (
+        <Section key="profile" title="Profile" template={template}>
+          <p className="text-[15px] leading-[1.65] text-[#333]">{resume.profile}</p>
+        </Section>
+      ),
+    education: () =>
+      resume.education.length > 0 && (
+        <Section key="education" title="Education" template={template}>
+          {resume.education.map((item) => (
+            <Entry key={item.id} title={item.degree} dates={item.dates}>
+              <p className="mb-1 text-[12.5px] font-medium text-[#555]">{item.institution}</p>
+            </Entry>
+          ))}
+        </Section>
+      ),
+    experience: () =>
+      resume.experience.length > 0 && (
+        <Section key="experience" title="Experience" template={template}>
+          {resume.experience.map((item) => (
+            <Entry key={item.id} title={item.title} dates={item.dates}>
+              <p className="mb-1 text-[12.5px] font-medium text-[#555]">{item.company}</p>
+              <ul className="mt-1 list-disc pl-[18px]">
+                {item.bullets.map((bullet, i) => (
+                  <li key={i} className="text-[15px] leading-[1.7] text-[#333]">
+                    {bullet}
+                  </li>
+                ))}
+              </ul>
+            </Entry>
+          ))}
+        </Section>
+      ),
+    projects: () =>
+      resume.projects.length > 0 && (
+        <Section key="projects" title="Projects" template={template}>
+          {resume.projects.map((item) => (
+            <div key={item.id} className="mb-3.5">
+              <h3 className="text-base font-light text-[#111]">{item.name}</h3>
+              {item.description && (
+                <p className="text-[15px] leading-[1.65] text-[#333]">{item.description}</p>
+              )}
+              {item.bullets?.length > 0 && (
+                <ul className="mt-1 list-disc pl-[18px]">
+                  {item.bullets.map((bullet, i) => (
+                    <li key={i} className="text-[15px] leading-[1.7] text-[#333]">
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </Section>
+      ),
+    achievements: () =>
+      resume.achievements?.length > 0 && (
+        <Section key="achievements" title="Achievements" template={template}>
+          {resume.achievements.map((item) => (
+            <Entry key={item.id} title={item.title} dates={item.dates}>
+              {item.description && (
+                <p className="text-[15px] leading-[1.65] text-[#333]">{item.description}</p>
+              )}
+            </Entry>
+          ))}
+        </Section>
+      ),
+    skills: () =>
+      skillGroups.length > 0 && (
+        <Section
+          key="skills"
+          title={skillGroups.length === 1 ? skillGroups[0].label || "Skills" : "Skills"}
+          template={template}
+        >
+          {skillGroups.length === 1 ? (
+            <p className="text-[15px] leading-[1.6] text-[#333]">{skillGroups[0].value}</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[15px] leading-[1.6] text-[#333]">
+              {skillGroups.map((group) => (
+                <div key={group.id}>
+                  <strong className="text-[#111]">{group.label || "Skills"}:</strong> {group.value}
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+      ),
+  };
 
   return (
     <div
-      ref={ref}
-      className="relative h-[1123px] w-[794px] shrink-0 overflow-y-auto overflow-x-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.18)]"
+      ref={setRefs}
+      className="relative min-h-[1123px] w-[794px] shrink-0 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.18)]"
       style={{ fontFamily: template.fonts.body }}
     >
       {isLeftRule && (
@@ -20,89 +141,22 @@ const CVPreview = forwardRef(function CVPreview({ resume }, ref) {
       <ResumeHeader resume={resume} template={template} />
 
       <div className={`px-14 pb-13 ${isBand ? "pt-3" : "pt-6"}`}>
-        {resume.profile.trim() && (
-          <Section title="Profile" template={template}>
-            <p className="text-[15px] leading-[1.65] text-[#333]">{resume.profile}</p>
-          </Section>
-        )}
-
-        {resume.education.length > 0 && (
-          <Section title="Education" template={template}>
-            {resume.education.map((item) => (
-              <Entry key={item.id} title={item.degree} dates={item.dates}>
-                <p className="mb-1 text-[12.5px] font-medium text-[#555]">{item.institution}</p>
-              </Entry>
-            ))}
-          </Section>
-        )}
-
-        {resume.experience.length > 0 && (
-          <Section title="Experience" template={template}>
-            {resume.experience.map((item) => (
-              <Entry key={item.id} title={item.title} dates={item.dates}>
-                <p className="mb-1 text-[12.5px] font-medium text-[#555]">{item.company}</p>
-                <ul className="mt-1 list-disc pl-[18px]">
-                  {item.bullets.map((bullet, i) => (
-                    <li key={i} className="text-[15px] leading-[1.7] text-[#333]">
-                      {bullet}
-                    </li>
-                  ))}
-                </ul>
-              </Entry>
-            ))}
-          </Section>
-        )}
-
-        {resume.projects.length > 0 && (
-          <Section title="Projects" template={template}>
-            {resume.projects.map((item) => (
-              <div key={item.id} className="mb-3.5">
-                <h3 className="text-base font-light text-[#111]">{item.name}</h3>
-                {item.description && (
-                  <p className="text-[15px] leading-[1.65] text-[#333]">{item.description}</p>
-                )}
-                {item.bullets?.length > 0 && (
-                  <ul className="mt-1 list-disc pl-[18px]">
-                    {item.bullets.map((bullet, i) => (
-                      <li key={i} className="text-[15px] leading-[1.7] text-[#333]">
-                        {bullet}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
-          </Section>
-        )}
-
-        {resume.achievements?.length > 0 && (
-          <Section title="Achievements" template={template}>
-            {resume.achievements.map((item) => (
-              <Entry key={item.id} title={item.title} dates={item.dates}>
-                {item.description && (
-                  <p className="text-[15px] leading-[1.65] text-[#333]">{item.description}</p>
-                )}
-              </Entry>
-            ))}
-          </Section>
-        )}
-
-        {skillGroups.length > 0 && (
-          <Section title={skillGroups.length === 1 ? skillGroups[0].label || "Skills" : "Skills"} template={template}>
-            {skillGroups.length === 1 ? (
-              <p className="text-[15px] leading-[1.6] text-[#333]">{skillGroups[0].value}</p>
-            ) : (
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[15px] leading-[1.6] text-[#333]">
-                {skillGroups.map((group) => (
-                  <div key={group.id}>
-                    <strong className="text-[#111]">{group.label || "Skills"}:</strong> {group.value}
-                  </div>
-                ))}
-              </div>
-            )}
-          </Section>
-        )}
+        {sectionOrder.map((key) => sections[key]?.())}
       </div>
+
+      {Array.from({ length: pageCount - 1 }, (_, i) => (
+        <div
+          key={i}
+          className="pointer-events-none absolute inset-x-0 flex items-center gap-2 px-4"
+          style={{ top: PAGE_HEIGHT_PX * (i + 1) }}
+        >
+          <div className="h-px flex-1 border-t border-dashed border-black/20" />
+          <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-black/35">
+            Page {i + 2}
+          </span>
+          <div className="h-px flex-1 border-t border-dashed border-black/20" />
+        </div>
+      ))}
     </div>
   );
 });

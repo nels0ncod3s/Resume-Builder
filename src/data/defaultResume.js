@@ -1,8 +1,14 @@
 import { DEFAULT_TEMPLATE_ID } from "./templates.js";
 import { generateId } from "../lib/id.js";
 
+// The order the body sections render in, both in the CV preview and in the
+// editor panel. Profile is intentionally left out of reordering — it's
+// pinned first as the intro summary — everything else here is user-orderable.
+export const DEFAULT_SECTION_ORDER = ["profile", "education", "experience", "projects", "achievements", "skills"];
+
 export const createDefaultResume = () => ({
   template: DEFAULT_TEMPLATE_ID,
+  sectionOrder: [...DEFAULT_SECTION_ORDER],
   name: "Your Name",
   tagline: "Your Job Title",
   location: "City, Country",
@@ -105,6 +111,19 @@ function normalizeAchievements(list) {
   );
 }
 
+// Guards against a corrupted, stale, or hand-edited `sectionOrder` — e.g.
+// one saved before a new section type existed, or missing a key entirely —
+// by dropping anything unrecognized and appending any missing keys (in
+// their default position) rather than letting a section silently vanish
+// from the resume.
+function normalizeSectionOrder(order) {
+  if (!Array.isArray(order)) return null;
+  const known = order.filter((key) => DEFAULT_SECTION_ORDER.includes(key));
+  const deduped = [...new Set(known)];
+  const missing = DEFAULT_SECTION_ORDER.filter((key) => !deduped.includes(key));
+  return [...deduped, ...missing];
+}
+
 function normalizeSkills(skills) {
   if (Array.isArray(skills)) {
     return skills.map((g) => withId({ id: g?.id, label: str(g?.label, "Skills"), value: str(g?.value) }));
@@ -139,6 +158,7 @@ export function sanitizeResume(raw) {
 
   return {
     template: str(raw.template, defaults.template),
+    sectionOrder: normalizeSectionOrder(raw.sectionOrder) ?? defaults.sectionOrder,
     name: str(raw.name, defaults.name),
     tagline: str(raw.tagline, defaults.tagline),
     location: str(raw.location, defaults.location),
