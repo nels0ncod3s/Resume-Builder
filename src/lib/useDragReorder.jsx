@@ -1,5 +1,24 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
+const SCROLL_EDGE_ZONE = 60; // px from the container edge that triggers auto-scroll
+const SCROLL_MAX_SPEED = 18; // px per animation frame right at the edge
+
+// Walks up from a drag handle to find the nearest scrollable ancestor —
+// the editor column is overflow-y-auto on desktop but the whole page
+// scrolls instead on mobile (see BuilderPage.jsx), so this can't be
+// hardcoded to one element; it has to be resolved at drag-start time.
+function getScrollParent(node) {
+  let el = node?.parentElement;
+  while (el && el !== document.body) {
+    const style = getComputedStyle(el);
+    if ((style.overflowY === "auto" || style.overflowY === "scroll") && el.scrollHeight > el.clientHeight) {
+      return el;
+    }
+    el = el.parentElement;
+  }
+  return document.scrollingElement || document.documentElement;
+}
+
 /**
  * Generic drag-to-reorder for a flat list of unique string keys. Used for
  * both the CV's section order and for reordering entries inside a section
@@ -10,7 +29,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
  * enough across desktop browsers that it isn't worth relying on. Pointer
  * Events unify mouse, trackpad, touch, and pen through one code path.
  *
- * Two things make this feel smooth rather than janky:
+ * Three things make this feel smooth rather than janky:
  *  - The item being dragged doesn't try to reposition itself in the flow.
  *    It stays in place (dimmed) as a placeholder, while a small floating
  *    "ghost" tracks the pointer directly (see DragGhost) — that's the
@@ -23,6 +42,12 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
  *    pointer" — the latter flickers back and forth near a boundary
  *    whenever items are different heights.
  *
+ * It also auto-scrolls the nearest scrollable ancestor when the pointer
+ * sits near its top/bottom edge, via a requestAnimationFrame loop that
+ * keeps running even if the pointer itself stops moving — otherwise a
+ * drag that starts mid-list could never reach an item above/below the
+ * visible area.
+ *
  * @param {string[]} order - current order of keys
  * @param {(next: string[]) => void} onReorder - called with the full
  *   reordered array whenever the drag crosses another item's midpoint
@@ -30,9 +55,11 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 export function useDragReorder(order, onReorder) {
   const [draggedKey, setDraggedKey] = useState(null);
   const [pointer, setPointer] = useState({ x: 0, y: 0 });
+  const pointerRef = useRef({ x: 0, y: 0 });
   const nodesRef = useRef(new Map());
   const orderRef = useRef(order);
   const flipRectsRef = useRef(null);
+  const scrollParentRef = useRef(null);
   orderRef.current = order;
 
   const registerNode = (key) => (node) => {
@@ -71,9 +98,7 @@ export function useDragReorder(order, onReorder) {
   useEffect(() => {
     if (!draggedKey) return;
 
-    function handlePointerMove(e) {
-      setPointer({ x: e.clientX, y: e.clientY });
-
+    function recomputeOrder(clientY) {
       const current = orderRef.current;
       const others = current.filter((k) => k !== draggedKey);
       let index = others.length;
@@ -81,7 +106,7 @@ export function useDragReorder(order, onReorder) {
         const node = nodesRef.current.get(others[i]);
         if (!node) continue;
         const rect = node.getBoundingClientRect();
-        if (e.clientY < rect.top + rect.height / 2) {
+        if (clientY < rect.top + rect.height / 2) {
           index = i;
           break;
         }
@@ -97,6 +122,47 @@ export function useDragReorder(order, onReorder) {
       onReorder(others);
     }
 
+    function handlePointerMove(e) {
+      pointerRef.current = { x: e.clientX, y: e.clientY };
+      setPointer(pointerRef.current);
+      recomputeOrder(e.clientY);
+    }
+
+    // Runs continuously while dragging (not just on pointermove) so that
+    // holding the pointer still against the top/bottom edge keeps
+    // scrolling instead of stalling until the next tiny mouse jiggle.
+    let rafId;
+    function autoScrollTick() {
+      const scrollParent = scrollParentRef.current;
+      if (scrollParent) {
+        const isWindow =
+          scrollParent === document.scrollingElement || scrollParent === document.documentElement;
+        const bounds = isWindow
+          ? { top: 0, bottom: window.innerHeight }
+          : scrollParent.getBoundingClientRect();
+
+        const y = pointerRef.current.y;
+        let delta = 0;
+        if (y < bounds.top + SCROLL_EDGE_ZONE) {
+          const proximity = 1 - Math.max(0, y - bounds.top) / SCROLL_EDGE_ZONE;
+          delta = -SCROLL_MAX_SPEED * proximity;
+        } else if (y > bounds.bottom - SCROLL_EDGE_ZONE) {
+          const proximity = 1 - Math.max(0, bounds.bottom - y) / SCROLL_EDGE_ZONE;
+          delta = SCROLL_MAX_SPEED * proximity;
+        }
+
+        if (delta !== 0) {
+          scrollParent.scrollBy(0, delta);
+          // Scrolling moves every item's rect out from under a pointer
+          // that hasn't itself moved, so the drop position needs
+          // re-checking here too, not just in handlePointerMove.
+          recomputeOrder(pointerRef.current.y);
+        }
+      }
+      rafId = requestAnimationFrame(autoScrollTick);
+    }
+    rafId = requestAnimationFrame(autoScrollTick);
+
     function endDrag() {
       setDraggedKey(null);
     }
@@ -107,6 +173,7 @@ export function useDragReorder(order, onReorder) {
     window.addEventListener("pointerup", endDrag);
     window.addEventListener("pointercancel", endDrag);
     return () => {
+      cancelAnimationFrame(rafId);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
       window.removeEventListener("pointermove", handlePointerMove);
@@ -120,7 +187,9 @@ export function useDragReorder(order, onReorder) {
     onPointerDown: (e) => {
       if (e.button !== undefined && e.button !== 0) return;
       e.preventDefault();
-      setPointer({ x: e.clientX, y: e.clientY });
+      scrollParentRef.current = getScrollParent(e.currentTarget);
+      pointerRef.current = { x: e.clientX, y: e.clientY };
+      setPointer(pointerRef.current);
       setDraggedKey(key);
     },
     style: { touchAction: "none" },

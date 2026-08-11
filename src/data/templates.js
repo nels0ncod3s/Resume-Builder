@@ -38,6 +38,11 @@ export const TEMPLATES = [
     id: "classic-serif",
     name: "Classic Serif",
     description: "Centered serif headline with a thin accent rule. Resume Pilot's original look.",
+    // Featured templates render directly in the picker; everything else
+    // lives behind "More templates" — see TemplatePicker.jsx. Keeps the
+    // picker from just growing a longer and longer grid every time a
+    // template gets added.
+    featured: true,
     fonts: {
       heading: '"Playfair Display", serif',
       body: '"DM Sans", sans-serif',
@@ -57,6 +62,7 @@ export const TEMPLATES = [
     id: "modern-mono",
     name: "Modern Mono",
     description: "Left-aligned sans-serif headline, solid accent underline. Minimal and ATS-first.",
+    featured: true,
     fonts: {
       heading: '"DM Sans", sans-serif',
       body: '"DM Sans", sans-serif',
