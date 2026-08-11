@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import SaveToast from "../builder/SaveToast.jsx";
 
 const links = [
   { to: "/app/builder", label: "Builder", tourId: "nav-builder-mobile" },
@@ -6,7 +7,7 @@ const links = [
   { to: "/app/ats-checker", label: "ATS Checker", tourId: "nav-ats-mobile" },
 ];
 
-export default function TopNav({ title, onStartTour }) {
+export default function TopNav({ title, onStartTour, saveStatus }) {
   return (
     <header className="shrink-0 border-b border-line bg-paper">
       <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-8">
@@ -14,14 +15,17 @@ export default function TopNav({ title, onStartTour }) {
           Resume Pilot
         </a>
         <h1 className="hidden truncate text-sm font-semibold text-ink-soft md:block">{title}</h1>
-        <button
-          type="button"
-          data-tour="tour-replay"
-          onClick={onStartTour}
-          className="flex min-h-[40px] shrink-0 items-center rounded-full border border-line px-4 text-xs font-semibold text-ink-soft transition-colors hover:border-ink hover:text-ink"
-        >
-          Take a tour
-        </button>
+        <div className="flex shrink-0 items-center gap-3">
+          <SaveToast status={saveStatus} />
+          <button
+            type="button"
+            data-tour="tour-replay"
+            onClick={onStartTour}
+            className="flex min-h-[40px] shrink-0 items-center rounded-full border border-line px-4 text-xs font-semibold text-ink-soft transition-colors hover:border-ink hover:text-ink"
+          >
+            Take a tour
+          </button>
+        </div>
       </div>
 
       <nav className="flex gap-2 px-4 pb-3 md:hidden" data-tour="mobile-nav">

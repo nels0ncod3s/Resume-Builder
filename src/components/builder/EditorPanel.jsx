@@ -1,12 +1,19 @@
-import { useState } from "react";
 import TemplatePicker from "../shared/TemplatePicker.jsx";
 import { generateId } from "../../lib/id.js";
 import { DEFAULT_SECTION_ORDER } from "../../data/defaultResume.js";
+import { useDragReorder, DragGhost } from "../../lib/useDragReorder.jsx";
 
 // Profile is pinned first (it's the intro summary) and isn't draggable;
 // everything else here can be reordered by dragging, and renders — both in
 // this panel and in the CV preview — in the order the person chose.
 const REORDERABLE_KEYS = DEFAULT_SECTION_ORDER.filter((key) => key !== "profile");
+const SECTION_LABELS = {
+  education: "Education",
+  experience: "Experience",
+  projects: "Projects",
+  achievements: "Achievements",
+  skills: "Skills",
+};
 
 const inputCls =
   "w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink placeholder:text-ink-soft/50 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink";
@@ -43,41 +50,37 @@ export default function EditorPanel({ resume, setResume }) {
   const removeItem = (listKey, id) =>
     setResume((r) => ({ ...r, [listKey]: r[listKey].filter((item) => item.id !== id) }));
 
-  const [draggedKey, setDraggedKey] = useState(null);
+  // Reorders a list of entries (education, experience, projects,
+  // achievements, or skill groups) to match a new array of ids.
+  const reorderList = (listKey) => (ids) =>
+    setResume((r) => ({
+      ...r,
+      [listKey]: ids.map((id) => r[listKey].find((item) => item.id === id)).filter(Boolean),
+    }));
 
-  const reorderTo = (targetKey) =>
-    setResume((r) => {
-      const current = r.sectionOrder?.length ? r.sectionOrder : DEFAULT_SECTION_ORDER;
-      const from = current.indexOf(draggedKey);
-      const to = current.indexOf(targetKey);
-      if (from === -1 || to === -1 || from === to) return r;
-      const next = [...current];
-      next.splice(from, 1);
-      next.splice(to, 0, draggedKey);
-      return { ...r, sectionOrder: next };
-    });
+  const order = (resume.sectionOrder?.length ? resume.sectionOrder : DEFAULT_SECTION_ORDER).filter((key) =>
+    REORDERABLE_KEYS.includes(key)
+  );
 
-  // Native HTML5 drag & drop — no extra dependency needed. Dragging is
-  // scoped to the grip handle (see the `data-drag-handle` check in Field),
-  // so accidentally starting a drag from a text field or button isn't
-  // possible. Reordering happens live as you drag over another section,
-  // rather than only on drop, so the list visibly settles into place as
-  // you go.
-  const dragHandlersFor = (key) => ({
-    draggable: true,
-    isDragging: draggedKey === key,
-    onDragStart: (e) => {
-      setDraggedKey(key);
-      e.dataTransfer.effectAllowed = "move";
-      e.dataTransfer.setData("text/plain", key);
-    },
-    onDragOver: (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = "move";
-      if (draggedKey && draggedKey !== key) reorderTo(key);
-    },
-    onDrop: (e) => e.preventDefault(),
-    onDragEnd: () => setDraggedKey(null),
+  // One drag hook for the section order, one per reorderable entry list —
+  // each is an independent drag scope (dragging an experience entry never
+  // touches the education list, etc).
+  const sectionDrag = useDragReorder(order, (next) =>
+    setResume((r) => ({ ...r, sectionOrder: ["profile", ...next] }))
+  );
+  const educationDrag = useDragReorder(resume.education.map((i) => i.id), reorderList("education"));
+  const experienceDrag = useDragReorder(resume.experience.map((i) => i.id), reorderList("experience"));
+  const projectsDrag = useDragReorder(resume.projects.map((i) => i.id), reorderList("projects"));
+  const achievementsDrag = useDragReorder(
+    (resume.achievements ?? []).map((i) => i.id),
+    reorderList("achievements")
+  );
+  const skillsDrag = useDragReorder(resume.skills.map((i) => i.id), reorderList("skills"));
+
+  const sectionDragProps = (key) => ({
+    registerNode: sectionDrag.registerNode(key),
+    handleProps: sectionDrag.getHandleProps(key),
+    isDragging: sectionDrag.draggedKey === key,
   });
 
   // Shared by Experience and Projects — both store an optional `bullets`
@@ -110,28 +113,24 @@ export default function EditorPanel({ resume, setResume }) {
       ),
     }));
 
-  const order = (resume.sectionOrder?.length ? resume.sectionOrder : DEFAULT_SECTION_ORDER).filter((key) =>
-    REORDERABLE_KEYS.includes(key)
-  );
-
   const sectionFields = {
     education: (
       <Field
         key="education"
         label="Education"
-        dragProps={dragHandlersFor("education")}
+        dragProps={sectionDragProps("education")}
         onAdd={() => addItem("education", () => ({ id: generateId(), degree: "Degree Name", institution: "Institution Name, City", dates: "" }))}
         onRemoveSection={resume.education.length > 0 ? () => update("education", []) : undefined}
       >
         {resume.education.map((item) => (
-          <div key={item.id} className="mb-3 rounded-lg border border-line p-3">
+          <DraggableEntry key={item.id} drag={educationDrag} itemId={item.id}>
             <div className="grid grid-cols-2 gap-2">
               <input className={inputCls} placeholder="Degree" value={item.degree} onChange={(e) => updateItem("education", item.id, "degree", e.target.value)} />
               <input className={inputCls} placeholder="Dates" value={item.dates} onChange={(e) => updateItem("education", item.id, "dates", e.target.value)} />
             </div>
             <input className={`${inputCls} mt-2`} placeholder="Institution" value={item.institution} onChange={(e) => updateItem("education", item.id, "institution", e.target.value)} />
             <RemoveButton onClick={() => removeItem("education", item.id)} />
-          </div>
+          </DraggableEntry>
         ))}
       </Field>
     ),
@@ -140,12 +139,12 @@ export default function EditorPanel({ resume, setResume }) {
       <Field
         key="experience"
         label="Experience"
-        dragProps={dragHandlersFor("experience")}
+        dragProps={sectionDragProps("experience")}
         onAdd={() => addItem("experience", () => ({ id: generateId(), title: "Job Title", company: "Company Name", dates: "", bullets: [""] }))}
         onRemoveSection={resume.experience.length > 0 ? () => update("experience", []) : undefined}
       >
         {resume.experience.map((item) => (
-          <div key={item.id} className="mb-3 rounded-lg border border-line p-3">
+          <DraggableEntry key={item.id} drag={experienceDrag} itemId={item.id}>
             <div className="grid grid-cols-2 gap-2">
               <input className={inputCls} placeholder="Job title" value={item.title} onChange={(e) => updateItem("experience", item.id, "title", e.target.value)} />
               <input className={inputCls} placeholder="Dates" value={item.dates} onChange={(e) => updateItem("experience", item.id, "dates", e.target.value)} />
@@ -170,7 +169,7 @@ export default function EditorPanel({ resume, setResume }) {
               </button>
             </div>
             <RemoveButton onClick={() => removeItem("experience", item.id)} />
-          </div>
+          </DraggableEntry>
         ))}
       </Field>
     ),
@@ -179,12 +178,12 @@ export default function EditorPanel({ resume, setResume }) {
       <Field
         key="projects"
         label="Projects"
-        dragProps={dragHandlersFor("projects")}
+        dragProps={sectionDragProps("projects")}
         onAdd={() => addItem("projects", () => ({ id: generateId(), name: "Project Name", description: "", bullets: [] }))}
         onRemoveSection={resume.projects.length > 0 ? () => update("projects", []) : undefined}
       >
         {resume.projects.map((item) => (
-          <div key={item.id} className="mb-3 rounded-lg border border-line p-3">
+          <DraggableEntry key={item.id} drag={projectsDrag} itemId={item.id}>
             <input className={inputCls} placeholder="Project name" value={item.name} onChange={(e) => updateItem("projects", item.id, "name", e.target.value)} />
             <textarea rows={2} className={`${inputCls} mt-2`} placeholder="Description" value={item.description} onChange={(e) => updateItem("projects", item.id, "description", e.target.value)} />
             <div className="mt-2 flex flex-col gap-1.5">
@@ -206,7 +205,7 @@ export default function EditorPanel({ resume, setResume }) {
               </button>
             </div>
             <RemoveButton onClick={() => removeItem("projects", item.id)} />
-          </div>
+          </DraggableEntry>
         ))}
       </Field>
     ),
@@ -215,7 +214,7 @@ export default function EditorPanel({ resume, setResume }) {
       <Field
         key="achievements"
         label="Achievements"
-        dragProps={dragHandlersFor("achievements")}
+        dragProps={sectionDragProps("achievements")}
         onAdd={() =>
           addItem("achievements", () => ({
             id: generateId(),
@@ -231,7 +230,7 @@ export default function EditorPanel({ resume, setResume }) {
           its own.
         </p>
         {(resume.achievements ?? []).map((item) => (
-          <div key={item.id} className="mb-3 rounded-lg border border-line p-3">
+          <DraggableEntry key={item.id} drag={achievementsDrag} itemId={item.id}>
             <div className="grid grid-cols-2 gap-2">
               <input className={inputCls} placeholder="Achievement" value={item.title} onChange={(e) => updateItem("achievements", item.id, "title", e.target.value)} />
               <input className={inputCls} placeholder="Date (optional)" value={item.dates} onChange={(e) => updateItem("achievements", item.id, "dates", e.target.value)} />
@@ -244,7 +243,7 @@ export default function EditorPanel({ resume, setResume }) {
               onChange={(e) => updateItem("achievements", item.id, "description", e.target.value)}
             />
             <RemoveButton onClick={() => removeItem("achievements", item.id)} />
-          </div>
+          </DraggableEntry>
         ))}
       </Field>
     ),
@@ -253,7 +252,7 @@ export default function EditorPanel({ resume, setResume }) {
       <Field
         key="skills"
         label="Skills"
-        dragProps={dragHandlersFor("skills")}
+        dragProps={sectionDragProps("skills")}
         onAdd={addSkillGroup}
         onRemoveSection={
           resume.skills.some((g) => g.value)
@@ -263,10 +262,11 @@ export default function EditorPanel({ resume, setResume }) {
       >
         <p className="mb-3 -mt-1 text-xs text-ink-soft">
           Leave this as one plain "Skills" list, or use "+ Add" to split it into your own
-          categories (Languages, Certifications, whatever fits your field).
+          categories (Languages, Certifications, whatever fits your field). Drag to reorder which
+          category shows first.
         </p>
         {resume.skills.map((group) => (
-          <div key={group.id} className="mb-3 rounded-lg border border-line p-3">
+          <DraggableEntry key={group.id} drag={skillsDrag} itemId={group.id}>
             <input
               className={`${inputCls} font-semibold`}
               placeholder="Category label (e.g. Skills, Languages)"
@@ -280,7 +280,7 @@ export default function EditorPanel({ resume, setResume }) {
               onChange={(e) => updateSkillGroup(group.id, "value", e.target.value)}
             />
             <RemoveButton onClick={() => removeSkillGroup(group.id)} />
-          </div>
+          </DraggableEntry>
         ))}
       </Field>
     ),
@@ -325,6 +325,40 @@ export default function EditorPanel({ resume, setResume }) {
       </Field>
 
       {order.map((key) => sectionFields[key])}
+
+      {sectionDrag.draggedKey && (
+        <DragGhost pointer={sectionDrag.pointer} label={SECTION_LABELS[sectionDrag.draggedKey]} />
+      )}
+      {educationDrag.draggedKey && (
+        <DragGhost
+          pointer={educationDrag.pointer}
+          label={resume.education.find((i) => i.id === educationDrag.draggedKey)?.degree || "Education entry"}
+        />
+      )}
+      {experienceDrag.draggedKey && (
+        <DragGhost
+          pointer={experienceDrag.pointer}
+          label={resume.experience.find((i) => i.id === experienceDrag.draggedKey)?.title || "Experience entry"}
+        />
+      )}
+      {projectsDrag.draggedKey && (
+        <DragGhost
+          pointer={projectsDrag.pointer}
+          label={resume.projects.find((i) => i.id === projectsDrag.draggedKey)?.name || "Project"}
+        />
+      )}
+      {achievementsDrag.draggedKey && (
+        <DragGhost
+          pointer={achievementsDrag.pointer}
+          label={(resume.achievements ?? []).find((i) => i.id === achievementsDrag.draggedKey)?.title || "Achievement"}
+        />
+      )}
+      {skillsDrag.draggedKey && (
+        <DragGhost
+          pointer={skillsDrag.pointer}
+          label={resume.skills.find((i) => i.id === skillsDrag.draggedKey)?.label || "Skills group"}
+        />
+      )}
     </div>
   );
 }
@@ -332,27 +366,14 @@ export default function EditorPanel({ resume, setResume }) {
 function Field({ label, onAdd, onRemoveSection, dragProps, children }) {
   return (
     <section
-      draggable={dragProps?.draggable}
-      onDragStart={(e) => {
-        // Only allow a drag gesture that actually started on the grip
-        // handle — otherwise clicking/dragging inside a text field or
-        // button in the section body would kick off a drag by accident.
-        if (!e.target.closest("[data-drag-handle]")) {
-          e.preventDefault();
-          return;
-        }
-        dragProps?.onDragStart(e);
-      }}
-      onDragOver={dragProps?.onDragOver}
-      onDrop={dragProps?.onDrop}
-      onDragEnd={dragProps?.onDragEnd}
+      ref={dragProps?.registerNode}
       className={`rounded-lg transition-opacity ${dragProps?.isDragging ? "opacity-40" : ""}`}
     >
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
           {dragProps && (
             <span
-              data-drag-handle
+              {...dragProps.handleProps}
               title="Drag to reorder"
               aria-hidden="true"
               className="cursor-grab select-none px-0.5 text-base leading-none text-ink-soft/40 hover:text-ink-soft active:cursor-grabbing"
@@ -382,6 +403,30 @@ function Field({ label, onAdd, onRemoveSection, dragProps, children }) {
 
       {children}
     </section>
+  );
+}
+
+// Wraps a single entry (an education/experience/project/achievement item,
+// or a skills group) with a grip handle so it can be dragged to reorder
+// within its own list, independent of every other list's order.
+function DraggableEntry({ drag, itemId, children }) {
+  return (
+    <div
+      ref={drag.registerNode(itemId)}
+      className={`mb-3 flex gap-2 rounded-lg border border-line p-3 transition-opacity ${
+        drag.draggedKey === itemId ? "opacity-40" : ""
+      }`}
+    >
+      <span
+        {...drag.getHandleProps(itemId)}
+        title="Drag to reorder"
+        aria-hidden="true"
+        className="mt-0.5 shrink-0 cursor-grab select-none text-ink-soft/40 hover:text-ink-soft active:cursor-grabbing"
+      >
+        ⠿
+      </span>
+      <div className="min-w-0 flex-1">{children}</div>
+    </div>
   );
 }
 

@@ -12,9 +12,19 @@ const TITLES = {
 export default function Workspace() {
   const location = useLocation();
   const [tourStart, setTourStart] = useState(null);
+  const [saveStatus, setSaveStatus] = useState(null);
 
   const registerTour = useCallback((fn) => {
     setTourStart(() => fn);
+  }, []);
+
+  // Pages that autosave (currently just the resume builder) report their
+  // status up here so it can live in the persistent header — that way it's
+  // visible no matter how far down the editor column someone has scrolled,
+  // and it's cleared automatically when they navigate to a page that
+  // doesn't autosave.
+  const reportSaveStatus = useCallback((status) => {
+    setSaveStatus(status);
   }, []);
 
   const title = TITLES[location.pathname] ?? "Resume Builder";
@@ -30,9 +40,9 @@ export default function Workspace() {
     <div className="flex h-screen overflow-hidden bg-canvas">
       <Sidebar />
       <div className="flex flex-1 flex-col min-w-0">
-        <TopNav title={title} onStartTour={() => tourStart?.()} />
+        <TopNav title={title} onStartTour={() => tourStart?.()} saveStatus={saveStatus} />
         <main className="min-h-0 flex-1 min-w-0">
-          <Outlet context={{ registerTour }} />
+          <Outlet context={{ registerTour, reportSaveStatus }} />
         </main>
       </div>
     </div>
