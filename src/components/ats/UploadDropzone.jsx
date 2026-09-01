@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { FileUp } from "lucide-react";
 
 export default function UploadDropzone({ onFile, fileName, error }) {
   const [dragOver, setDragOver] = useState(false);
@@ -24,15 +25,16 @@ export default function UploadDropzone({ onFile, fileName, error }) {
           setDragOver(false);
           handleFiles(e.dataTransfer.files);
         }}
-        className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
+        className={`flex flex-col items-center justify-center border border-dashed p-7 text-center transition-colors ${
           dragOver ? "border-ink bg-canvas" : "border-line bg-white"
         }`}
       >
+        <FileUp size={20} className="mb-3 text-ink-soft" aria-hidden="true" />
         <p className="text-sm font-semibold text-ink">
           {fileName ? fileName : "Drop a PDF resume here"}
         </p>
         <p className="mt-1 text-xs text-ink-soft">or</p>
-        <label className="mt-2 cursor-pointer rounded-full border border-line px-4 py-2 text-xs font-semibold text-ink hover:border-ink">
+        <label className="mt-3 flex min-h-[40px] cursor-pointer items-center border border-line px-4 text-xs font-semibold text-ink hover:border-ink">
           Browse file
           <input
             type="file"

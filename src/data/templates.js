@@ -38,6 +38,8 @@ export const TEMPLATES = [
     id: "classic-serif",
     name: "Classic Serif",
     description: "Centered serif headline with a thin accent rule. Resume Pilot's original look.",
+    category: "Classic",
+    bestFor: "Traditional roles and leadership applications",
     // Featured templates render directly in the picker; everything else
     // lives behind "More templates" — see TemplatePicker.jsx. Keeps the
     // picker from just growing a longer and longer grid every time a
@@ -62,6 +64,8 @@ export const TEMPLATES = [
     id: "modern-mono",
     name: "Modern Mono",
     description: "Left-aligned sans-serif headline, solid accent underline. Minimal and ATS-first.",
+    category: "Modern",
+    bestFor: "Product, operations and technology roles",
     featured: true,
     fonts: {
       heading: '"DM Sans", sans-serif',
@@ -82,6 +86,9 @@ export const TEMPLATES = [
     id: "bold-editorial",
     name: "Bold Editorial",
     description: "Full-width color header band with serif display type. Confident and distinctive.",
+    category: "Editorial",
+    bestFor: "Creative, communications and leadership roles",
+    featured: true,
     fonts: {
       heading: '"Playfair Display", serif',
       body: '"DM Sans", sans-serif',
@@ -102,6 +109,8 @@ export const TEMPLATES = [
     name: "Code Clean",
     description:
       "Left-aligned monospace headline, sharp accent underline. Built for engineering and technical resumes.",
+    category: "Technical",
+    bestFor: "Engineering, data and infrastructure roles",
     fonts: {
       heading: '"Space Mono", monospace',
       body: '"DM Sans", sans-serif',
@@ -124,6 +133,8 @@ export const TEMPLATES = [
     id: "quiet-sans",
     name: "Quiet Sans",
     description: "Centered sans-serif headline with a soft accent rule. Understated and easy to scan.",
+    category: "Minimal",
+    bestFor: "Flexible use across most industries",
     fonts: {
       heading: '"DM Sans", sans-serif',
       body: '"DM Sans", sans-serif',
@@ -137,6 +148,90 @@ export const TEMPLATES = [
       accentRGB: [29, 78, 216],
       headerBand: false,
       headerAlign: "center",
+    },
+  },
+  {
+    id: "executive-green",
+    name: "Executive Green",
+    description: "A composed serif header with a deep green rule and traditional hierarchy.",
+    category: "Classic",
+    bestFor: "Finance, consulting and senior leadership roles",
+    fonts: {
+      heading: '"Playfair Display", serif',
+      body: '"DM Sans", sans-serif',
+    },
+    accent: "#166534",
+    headerStyle: "centered-rule",
+    swatch: { bg: "#ffffff", accent: "#166534" },
+    pdf: {
+      headingFont: "times",
+      bodyFont: "helvetica",
+      accentRGB: [22, 101, 52],
+      headerBand: false,
+      headerAlign: "center",
+    },
+  },
+  {
+    id: "structured-slate",
+    name: "Structured Slate",
+    description: "A crisp left rail and restrained slate accent keep dense experience easy to scan.",
+    category: "Modern",
+    bestFor: "Operations, project management and corporate roles",
+    fonts: {
+      heading: '"DM Sans", sans-serif',
+      body: '"DM Sans", sans-serif',
+    },
+    accent: "#334155",
+    headerStyle: "left-rule",
+    swatch: { bg: "#ffffff", accent: "#334155" },
+    pdf: {
+      headingFont: "helvetica",
+      bodyFont: "helvetica",
+      accentRGB: [51, 65, 85],
+      headerBand: false,
+      headerAlign: "left",
+    },
+  },
+  {
+    id: "studio-rose",
+    name: "Studio Rose",
+    description: "A rich rose header band adds personality while the body stays clean and readable.",
+    category: "Creative",
+    bestFor: "Design, brand, media and customer experience roles",
+    fonts: {
+      heading: '"Playfair Display", serif',
+      body: '"DM Sans", sans-serif',
+    },
+    accent: "#9f1239",
+    headerStyle: "band",
+    swatch: { bg: "#9f1239", accent: "#9f1239" },
+    pdf: {
+      headingFont: "times",
+      bodyFont: "helvetica",
+      accentRGB: [159, 18, 57],
+      headerBand: true,
+      headerAlign: "center",
+    },
+  },
+  {
+    id: "precision-blue",
+    name: "Precision Blue",
+    description: "A focused blue rule and clean sans-serif type create a direct, contemporary layout.",
+    category: "Modern",
+    bestFor: "Healthcare, science and analytical roles",
+    fonts: {
+      heading: '"DM Sans", sans-serif',
+      body: '"DM Sans", sans-serif',
+    },
+    accent: "#0369a1",
+    headerStyle: "left-rule",
+    swatch: { bg: "#ffffff", accent: "#0369a1" },
+    pdf: {
+      headingFont: "helvetica",
+      bodyFont: "helvetica",
+      accentRGB: [3, 105, 161],
+      headerBand: false,
+      headerAlign: "left",
     },
   },
 ];

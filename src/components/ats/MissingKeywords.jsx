@@ -2,7 +2,7 @@ export default function MissingKeywords({ jdMatch }) {
   if (!jdMatch) return null;
 
   return (
-    <div className="rounded-lg border border-line bg-white p-4">
+    <div className="border-y border-line bg-white py-5">
       <div className="flex items-baseline justify-between">
         <h4 className="text-sm font-semibold text-ink">Job description keyword match</h4>
         <span className="text-sm font-bold text-ink">{jdMatch.matchPercent}%</span>
@@ -10,6 +10,9 @@ export default function MissingKeywords({ jdMatch }) {
       <p className="mt-1 text-xs text-ink-soft">
         {jdMatch.matched.length} of {jdMatch.totalKeywords} top keywords from the job description
         appear in your resume.
+      </p>
+      <p className="mt-2 text-xs leading-relaxed text-ink-soft">
+        Only add a missing term when it truthfully reflects your experience. Relevance matters more than repetition.
       </p>
 
       {jdMatch.missing.length > 0 && (

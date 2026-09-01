@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { driver } from "driver.js";
 
 const SEEN_KEY_PREFIX = "resumely.tour.";
@@ -97,7 +97,7 @@ function buildBuilderSteps(mobile) {
       desktopSelector: '[data-tour="nav-ats"]',
       mobileSelector: '[data-tour="nav-ats-mobile"]',
       title: "ATS Checker",
-      description: "Switch here any time to stress-test your resume against ATS filters.",
+      description: "Switch here any time for a practical structure, wording, and job-match review.",
     }),
     {
       element: '[data-tour="import-pdf"]',

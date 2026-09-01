@@ -6,7 +6,7 @@ export default function ImportCoverLetterPdfButton({ onImport }) {
     <PdfDropzone
       dataTour="import-cover-letter-pdf"
       title="Already have a cover letter?"
-      description="Drag and drop a PDF here, or click to browse, to auto-fill the fields below. This replaces the current form, and parsing is best-effort — review everything after."
+      description="Import a PDF to prefill this form. Your current draft will be replaced, so review the result before exporting."
       successMessage="Imported — review each field below."
       parse={parseCoverLetterText}
       onImport={onImport}

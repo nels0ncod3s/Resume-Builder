@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { ArrowRight, FileText, ScanSearch, ShieldCheck } from "lucide-react";
+import { Link, useOutletContext } from "react-router-dom";
 import { useResumeData } from "../lib/resumeStorage.js";
 import { resumeToText } from "../lib/resumeText.js";
 import { extractPdfText } from "../lib/pdfTextExtract.js";
@@ -11,13 +12,19 @@ import ChecklistResults from "../components/ats/ChecklistResults.jsx";
 import MissingKeywords from "../components/ats/MissingKeywords.jsx";
 import { useAtsTour } from "../components/onboarding/useProductTour.js";
 
+const SCORE_COPY = [
+  { min: 75, title: "Strong foundation", body: "The essentials are in place. Focus on the remaining role-specific improvements before applying." },
+  { min: 50, title: "Worth refining", body: "Your resume is readable, but a few content and structure changes could make it more competitive." },
+  { min: 0, title: "Needs attention", body: "Start with the priority checks below. Fixing structure and missing basics will have the largest effect." },
+];
+
 export default function AtsCheckerPage() {
   const [resume] = useResumeData();
   const { registerTour } = useOutletContext();
   useAtsTour(registerTour);
 
-  const [source, setSource] = useState("builder"); // "builder" | "upload"
-  const [upload, setUpload] = useState(null); // { name, text, pageCount }
+  const [source, setSource] = useState("builder");
+  const [upload, setUpload] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [jobDescription, setJobDescription] = useState("");
@@ -33,7 +40,7 @@ export default function AtsCheckerPage() {
       const { text, pageCount } = await extractPdfText(file);
       setUpload({ name: file.name, text, pageCount });
     } catch {
-      setUploadError("Couldn't read that PDF — it may be corrupted or password-protected.");
+      setUploadError("Couldn't read that PDF. It may be corrupted or password-protected.");
       setUpload(null);
     } finally {
       setUploading(false);
@@ -45,11 +52,7 @@ export default function AtsCheckerPage() {
     return upload?.text ?? "";
   }, [source, resume, upload]);
 
-  // For uploads, a file being present is what triggers analysis — even a
-  // PDF that extracts to no text at all should still run (and correctly
-  // score very low), not silently sit there looking unfinished.
   const hasSource = source === "upload" ? Boolean(upload) : true;
-
   const analysis = useMemo(() => {
     if (!hasSource) return null;
     return analyzeResume({ text: resumeText, jobDescription });
@@ -57,78 +60,117 @@ export default function AtsCheckerPage() {
 
   return (
     <div className="flex h-full min-w-0 flex-col overflow-y-auto md:flex-row md:overflow-hidden">
-      <div className="order-1 w-full border-t border-line bg-white p-4 md:order-1 md:h-full md:w-[420px] md:overflow-y-auto md:border-r md:border-t-0 md:p-6">
-        <div data-tour="ats-source" className="mb-6">
-          <h3 className="mb-3 font-display text-lg font-bold text-ink">Resume source</h3>
-          <div className="flex gap-2">
-            <SourceTab active={source === "builder"} onClick={() => setSource("builder")}>
-              My Builder resume
+      <aside className="order-1 w-full border-b border-line bg-white p-5 md:h-full md:w-[420px] md:overflow-y-auto md:border-b-0 md:border-r md:p-6">
+        <div data-tour="ats-source">
+          <div className="mb-5">
+            <p className="text-xs font-bold uppercase text-ink-soft">Step 1</p>
+            <h2 className="mt-1 font-display text-xl font-bold text-ink">Choose the resume to review</h2>
+          </div>
+
+          <div className="grid grid-cols-2 border border-line bg-canvas p-1" role="tablist" aria-label="Resume source">
+            <SourceTab active={source === "builder"} onClick={() => setSource("builder")} icon={FileText}>
+              Builder resume
             </SourceTab>
-            <SourceTab active={source === "upload"} onClick={() => setSource("upload")}>
-              Upload a PDF
+            <SourceTab active={source === "upload"} onClick={() => setSource("upload")} icon={ScanSearch}>
+              Upload PDF
             </SourceTab>
           </div>
 
-          {source === "upload" && (
+          {source === "builder" ? (
+            <div className="mt-4 flex items-start gap-3 border-l-2 border-ink bg-canvas p-3">
+              <ShieldCheck size={17} className="mt-0.5 shrink-0 text-ink" aria-hidden="true" />
+              <p className="text-xs leading-relaxed text-ink-soft">
+                Reviewing the version saved in your builder. Changes there update this score automatically.
+              </p>
+            </div>
+          ) : (
             <div className="mt-4">
               <UploadDropzone
                 onFile={handleFile}
-                fileName={uploading ? "Reading PDF…" : upload?.name}
+                fileName={uploading ? "Reading PDF..." : upload?.name}
                 error={uploadError}
               />
             </div>
           )}
         </div>
 
-        <div data-tour="ats-jd">
+        <div data-tour="ats-jd" className="mt-8 border-t border-line pt-7">
+          <p className="mb-1 text-xs font-bold uppercase text-ink-soft">Step 2</p>
+          <h2 className="mb-4 font-display text-xl font-bold text-ink">Tailor the review to a role</h2>
           <JobDescriptionInput value={jobDescription} onChange={setJobDescription} />
         </div>
-      </div>
 
-      <div className="order-2 flex-1 px-4 py-6 md:order-2 md:h-full md:overflow-y-auto md:px-6 md:py-8">
-        <div data-tour="ats-results" className="mx-auto max-w-xl">
-          {!analysis ? (
-            <EmptyState source={source} />
-          ) : (
-            <div className="flex flex-col items-center gap-6">
-              <ScoreGauge score={analysis.score} />
-              <div className="w-full">
-                <ChecklistResults checks={analysis.checks} />
-              </div>
-              {analysis.jdMatch && (
-                <div className="w-full">
-                  <MissingKeywords jdMatch={analysis.jdMatch} />
-                </div>
-              )}
-            </div>
-          )}
+        <p className="mt-8 border-t border-line pt-5 text-[11px] leading-relaxed text-ink-soft">
+          This is a rules-based estimate, not a prediction from a specific employer's applicant tracking system.
+        </p>
+      </aside>
+
+      <main className="order-2 flex-1 px-5 py-7 md:h-full md:overflow-y-auto md:px-8 md:py-9">
+        <div data-tour="ats-results" className="mx-auto max-w-3xl">
+          {!analysis ? <EmptyState /> : <Results analysis={analysis} source={source} />}
         </div>
-      </div>
+      </main>
     </div>
   );
 }
 
-function SourceTab({ active, onClick, children }) {
+function Results({ analysis, source }) {
+  const scoreCopy = SCORE_COPY.find((item) => analysis.score >= item.min);
+  const passCount = analysis.checks.filter((check) => check.status === "pass").length;
+  const priorityCount = analysis.checks.filter((check) => check.status === "fail").length;
+
+  return (
+    <div>
+      <div className="grid items-center gap-7 border-b border-line pb-8 sm:grid-cols-[180px_1fr]">
+        <ScoreGauge score={analysis.score} />
+        <div>
+          <p className="text-xs font-bold uppercase text-ink-soft">Resume readiness estimate</p>
+          <h2 className="mt-2 font-display text-3xl font-bold text-ink">{scoreCopy.title}</h2>
+          <p className="mt-3 text-sm leading-relaxed text-ink-soft">{scoreCopy.body}</p>
+          <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-xs text-ink-soft">
+            <span><strong className="text-ink">{passCount}</strong> of 8 checks passed</span>
+            <span><strong className="text-ink">{analysis.wordCount}</strong> words</span>
+            <span><strong className="text-ink">{analysis.bulletCount}</strong> bullets found</span>
+          </div>
+          {source === "builder" && priorityCount > 0 && (
+            <Link to="/app/builder" className="mt-6 inline-flex min-h-[42px] items-center gap-2 bg-ink px-4 text-xs font-bold text-white">
+              Fix {priorityCount} priority {priorityCount === 1 ? "item" : "items"} in builder
+              <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+          )}
+        </div>
+      </div>
+
+      {analysis.jdMatch && <div className="mt-8"><MissingKeywords jdMatch={analysis.jdMatch} /></div>}
+      <div className="mt-8"><ChecklistResults checks={analysis.checks} /></div>
+    </div>
+  );
+}
+
+function SourceTab({ active, onClick, icon: Icon, children }) {
   return (
     <button
       type="button"
+      role="tab"
+      aria-selected={active}
       onClick={onClick}
-      className={`flex min-h-[40px] flex-1 items-center justify-center rounded-full px-3.5 text-xs font-semibold transition-colors md:flex-none md:py-1.5 ${
-        active ? "bg-ink text-white" : "border border-line text-ink-soft hover:border-ink hover:text-ink"
+      className={`flex min-h-[42px] items-center justify-center gap-2 px-3 text-xs font-semibold transition-colors ${
+        active ? "bg-ink text-white" : "text-ink-soft hover:text-ink"
       }`}
     >
+      <Icon size={15} aria-hidden="true" />
       {children}
     </button>
   );
 }
 
-function EmptyState({ source }) {
+function EmptyState() {
   return (
-    <div className="rounded-xl border border-dashed border-line bg-white py-16 text-center">
-      <p className="text-sm font-medium text-ink-soft">
-        {source === "upload"
-          ? "Upload a PDF resume to see your ATS score."
-          : "Add some content in the Resume Builder to see your ATS score."}
+    <div className="flex min-h-[430px] flex-col items-center justify-center border border-dashed border-line bg-white px-6 text-center">
+      <ScanSearch size={28} strokeWidth={1.5} className="text-ink-soft" aria-hidden="true" />
+      <h2 className="mt-4 font-display text-xl font-bold text-ink">Upload a resume to begin</h2>
+      <p className="mt-2 max-w-sm text-sm leading-relaxed text-ink-soft">
+        We will extract its text, check the document structure, and show the most useful improvements first.
       </p>
     </div>
   );

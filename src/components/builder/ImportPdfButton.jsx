@@ -6,7 +6,7 @@ export default function ImportPdfButton({ onImport }) {
     <PdfDropzone
       dataTour="import-pdf"
       title="Already have a resume?"
-      description="Drag and drop a PDF here, or click to browse, to auto-fill the fields below. This replaces the current form, and parsing is best-effort — review everything after."
+      description="Import a PDF to prefill this form. Your current draft will be replaced, so review the result before exporting."
       successMessage="Imported — review each section below."
       parse={parseResumeText}
       onImport={onImport}
