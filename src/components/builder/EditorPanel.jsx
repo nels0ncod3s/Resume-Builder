@@ -38,6 +38,21 @@ export default function EditorPanel({ resume, setResume }) {
   const removeSkillGroup = (id) =>
     setResume((r) => ({ ...r, skills: r.skills.filter((g) => g.id !== id) }));
 
+  const updateLink = (id, field, value) =>
+    setResume((r) => ({
+      ...r,
+      links: r.links.map((link) => (link.id === id ? { ...link, [field]: value } : link)),
+    }));
+
+  const addLink = () =>
+    setResume((r) => ({
+      ...r,
+      links: [...r.links, { id: generateId(), label: "Portfolio", url: "" }],
+    }));
+
+  const removeLink = (id) =>
+    setResume((r) => ({ ...r, links: r.links.filter((link) => link.id !== id) }));
+
   const updateItem = (listKey, id, field, value) =>
     setResume((r) => ({
       ...r,
@@ -309,10 +324,40 @@ export default function EditorPanel({ resume, setResume }) {
           <Labeled label="Phone">
             <input className={inputCls} value={resume.phone} onChange={(e) => update("phone", e.target.value)} />
           </Labeled>
-          <Labeled label="Link (GitHub/portfolio)">
-            <input className={inputCls} value={resume.link} onChange={(e) => update("link", e.target.value)} />
-          </Labeled>
         </div>
+      </Field>
+
+      <Field label="Links" onAdd={addLink}>
+        <p className="mb-3 -mt-1 text-xs text-ink-soft">
+          Add your portfolio, LinkedIn, GitHub, or any other professional profile.
+        </p>
+        {resume.links.map((link) => (
+          <div key={link.id} className="mb-3 rounded-lg border border-line p-3">
+            <div className="grid grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] gap-2">
+              <input
+                className={inputCls}
+                aria-label="Link label"
+                placeholder="Label, e.g. LinkedIn"
+                value={link.label}
+                onChange={(e) => updateLink(link.id, "label", e.target.value)}
+              />
+              <input
+                className={inputCls}
+                aria-label="Link URL"
+                inputMode="url"
+                placeholder="linkedin.com/in/yourname"
+                value={link.url}
+                onChange={(e) => updateLink(link.id, "url", e.target.value)}
+              />
+            </div>
+            <RemoveButton onClick={() => removeLink(link.id)} label="Remove link" />
+          </div>
+        ))}
+        {resume.links.length === 0 && (
+          <p className="rounded-lg border border-dashed border-line px-3 py-4 text-sm text-ink-soft">
+            No links added yet.
+          </p>
+        )}
       </Field>
 
       <Field label="Profile" onRemoveSection={resume.profile ? () => update("profile", "") : undefined}>
@@ -439,14 +484,14 @@ function Labeled({ label, children }) {
   );
 }
 
-function RemoveButton({ onClick }) {
+function RemoveButton({ onClick, label = "Remove entry" }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className="mt-1 flex min-h-[36px] items-center py-2 text-xs font-semibold text-red-500/80 hover:text-red-600"
     >
-      Remove entry
+      {label}
     </button>
   );
 }

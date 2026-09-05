@@ -48,8 +48,10 @@ export default function CVScaledViewport({ cvRef, children }) {
   }, [cvRef]);
 
   return (
-    <div ref={viewportRef} className="flex w-full justify-center overflow-hidden">
-      {children}
+    <div ref={viewportRef} className="relative w-full">
+      <div className="absolute left-1/2 top-0 -translate-x-1/2">
+        {children}
+      </div>
     </div>
   );
 }

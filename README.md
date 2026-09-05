@@ -7,7 +7,7 @@ Resume Pilot is a browser-based toolkit for building a resume, creating a matchi
 - Resume builder with live A4 preview, section reordering, PDF import, autosave, and PDF/PNG export
 - Matching cover-letter builder and export flow
 - Rules-based ATS readiness review with optional job-description comparison
-- Nine coordinated resume and cover-letter templates
+- Four distinct, coordinated resume and cover-letter templates
 - Local browser storage with no account required
 
 ## Development

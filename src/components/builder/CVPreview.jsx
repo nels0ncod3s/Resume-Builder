@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
 import { getTemplate } from "../../data/templates.js";
 import { DEFAULT_SECTION_ORDER } from "../../data/defaultResume.js";
+import { activeResumeLinks, linkHref, linkLabel } from "../../lib/resumeLinks.js";
 
 // One A4 page at the preview's 96dpi-equivalent pixel size. Used only to
 // draw page-break guides — the real PDF paginates independently (see
@@ -138,6 +139,15 @@ const CVPreview = forwardRef(function CVPreview({ resume }, forwardedRef) {
         <div className="absolute inset-y-0 left-0 w-[6px]" style={{ background: template.accent }} />
       )}
 
+      {!isLeftRule &&
+        Array.from({ length: pageCount - 1 }, (_, i) => (
+          <div
+            key={`page-accent-${i}`}
+            className="pointer-events-none absolute inset-x-0 h-[5px]"
+            style={{ top: PAGE_HEIGHT_PX * (i + 1), background: template.accent }}
+          />
+        ))}
+
       <ResumeHeader resume={resume} template={template} />
 
       <div className={`px-14 pb-13 ${isBand ? "pt-3" : "pt-6"}`}>
@@ -168,7 +178,8 @@ const CVPreview = forwardRef(function CVPreview({ resume }, forwardedRef) {
 // for section-title underlines change between templates.
 function ResumeHeader({ resume, template }) {
   const subLine = [resume.tagline, resume.location].filter(Boolean).join("  |  ");
-  const contactLine = [resume.email, resume.phone, resume.link].filter(Boolean).join("  |  ");
+  const contactLine = [resume.email, resume.phone].filter(Boolean).join("  |  ");
+  const links = activeResumeLinks(resume);
 
   if (template.headerStyle === "band") {
     return (
@@ -180,6 +191,7 @@ function ResumeHeader({ resume, template }) {
           <p className="mt-1.5 text-[14px] font-medium uppercase tracking-[1.5px] opacity-90">{subLine}</p>
         )}
         {contactLine && <p className="mt-1.5 text-[13px] opacity-75">{contactLine}</p>}
+        <ResumeLinks links={links} className="justify-center text-white/85" />
       </header>
     );
   }
@@ -199,6 +211,7 @@ function ResumeHeader({ resume, template }) {
           </p>
         )}
         {contactLine && <p className="mt-1.5 text-sm text-[#666]">{contactLine}</p>}
+        <ResumeLinks links={links} className="justify-start text-[#555]" />
       </header>
     );
   }
@@ -215,7 +228,28 @@ function ResumeHeader({ resume, template }) {
       </h1>
       {subLine && <p className="mt-1.5 text-[15px] font-medium uppercase tracking-[1.5px] text-[#555]">{subLine}</p>}
       {contactLine && <p className="mt-1.5 text-sm text-[#777]">{contactLine}</p>}
+      <ResumeLinks links={links} className="justify-center text-[#555]" />
     </header>
+  );
+}
+
+function ResumeLinks({ links, className }) {
+  if (links.length === 0) return null;
+
+  return (
+    <p className={`mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[13px] ${className}`}>
+      {links.map((link) => (
+        <a
+          key={link.id}
+          href={linkHref(link.url)}
+          target="_blank"
+          rel="noreferrer"
+          className="underline decoration-current/45 underline-offset-2"
+        >
+          {linkLabel(link)}
+        </a>
+      ))}
+    </p>
   );
 }
 

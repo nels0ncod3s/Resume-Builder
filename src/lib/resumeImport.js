@@ -213,7 +213,7 @@ export function parseResumeText(rawText) {
 
   if (emailMatch) resume.email = emailMatch[0];
   if (phoneMatch) resume.phone = phoneMatch[0].trim();
-  if (urlMatch) resume.link = urlMatch[0];
+  if (urlMatch) resume.links = [{ id: id(), label: "Portfolio", url: urlMatch[0] }];
 
   let taglineLocationText = restText;
   for (const token of [emailMatch?.[0], phoneMatch?.[0], urlMatch?.[0]]) {

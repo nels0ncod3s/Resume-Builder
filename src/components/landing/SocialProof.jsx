@@ -1,5 +1,5 @@
 const stats = [
-  { value: "9", label: "Matching document templates" },
+  { value: "4", label: "Distinct document templates" },
   { value: "8", label: "Practical resume checks" },
   { value: "Private", label: "Saved only in your browser" },
   { value: "PDF + PNG", label: "Export when you are ready" },
