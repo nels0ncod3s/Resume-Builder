@@ -83,7 +83,16 @@ function writeHeaderPlain(doc, cursor, letter, template) {
 }
 
 function renderCoverLetterToPdf(doc, letter, template) {
-  const cursor = createCursor();
+  const cursor = createCursor({
+    onPageAdded: (pageDoc) => {
+      pageDoc.setFillColor(...template.pdf.accentRGB);
+      if (template.headerStyle === "left-rule") {
+        pageDoc.rect(0, 0, 4, PAGE_HEIGHT, "F");
+      } else {
+        pageDoc.rect(0, 0, PAGE_WIDTH, template.headerStyle === "band" ? 7 : 4, "F");
+      }
+    },
+  });
 
   if (template.pdf.headerBand) {
     writeHeaderBand(doc, cursor, letter, template.pdf);

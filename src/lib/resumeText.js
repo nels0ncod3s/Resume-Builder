@@ -2,7 +2,8 @@ export function resumeToText(resume) {
   const lines = [];
 
   lines.push(resume.name, resume.tagline, resume.location);
-  lines.push(`${resume.email} ${resume.phone} ${resume.link}`);
+  const linkText = (resume.links || []).map((link) => link.url).filter(Boolean).join(" ");
+  lines.push(`${resume.email} ${resume.phone} ${linkText}`);
 
   if (resume.profile.trim()) {
     lines.push("", "PROFILE", resume.profile);

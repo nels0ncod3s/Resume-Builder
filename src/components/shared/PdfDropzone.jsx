@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { FileUp } from "lucide-react";
 import { extractPdfText } from "../../lib/pdfTextExtract.js";
 
 /**
@@ -87,17 +88,18 @@ export default function PdfDropzone({ dataTour, title, description, successMessa
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`mb-6 rounded-lg border border-dashed p-4 transition-colors ${
+      className={`mb-6 border border-dashed p-4 transition-colors ${
         isDragActive ? "border-ink bg-ink/5" : "border-line bg-canvas"
       }`}
     >
       <p className="text-sm font-semibold text-ink">{title}</p>
       <p className="mt-0.5 text-xs leading-relaxed text-ink-soft">{description}</p>
       <label
-        className={`mt-3 inline-flex min-h-[40px] items-center rounded-full border border-line px-4 text-xs font-semibold text-ink transition-colors hover:border-ink ${
+        className={`mt-3 inline-flex min-h-[40px] items-center gap-2 border border-line px-4 text-xs font-semibold text-ink transition-colors hover:border-ink ${
           busy ? "cursor-not-allowed opacity-60" : "cursor-pointer"
         }`}
       >
+        <FileUp size={14} aria-hidden="true" />
         {busy ? "Reading PDF…" : isDragActive ? "Drop to import" : "Import from PDF"}
         <input
           type="file"

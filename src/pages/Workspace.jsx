@@ -6,7 +6,7 @@ import TopNav from "../components/layout/TopNav.jsx";
 const TITLES = {
   "/app/builder": "Resume Builder",
   "/app/cover-letter": "Cover Letter",
-  "/app/ats-checker": "ATS Checker",
+  "/app/ats-checker": "ATS Check",
 };
 
 export default function Workspace() {
@@ -29,9 +29,6 @@ export default function Workspace() {
 
   const title = TITLES[location.pathname] ?? "Resume Builder";
 
-  // index.html isn't part of this codebase, so the static <title> tag
-  // can't be edited directly — this keeps the browser tab in sync with
-  // whichever workspace page is active instead.
   useEffect(() => {
     document.title = `${title} · Resume Pilot`;
   }, [title]);

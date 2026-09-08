@@ -1,5 +1,6 @@
 import {
   PAGE_WIDTH,
+  PAGE_HEIGHT,
   MARGIN_X,
   MARGIN_TOP,
   CONTENT_WIDTH,
@@ -8,6 +9,7 @@ import {
   writeLabeledLine,
 } from "./pdfLayout.js";
 import { getTemplate } from "../data/templates.js";
+import { activeResumeLinks, linkHref, linkLabel } from "./resumeLinks.js";
 
 export { downloadAsImage } from "./domCapture.js";
 
@@ -21,14 +23,73 @@ function slugify(name) {
   );
 }
 
+function layoutLinkRows(doc, links, font) {
+  doc.setFont(font, "normal");
+  doc.setFontSize(9.5);
+  const separatorWidth = doc.getTextWidth("   |   ");
+  const rows = [];
+  let row = [];
+  let rowWidth = 0;
+
+  for (const link of links) {
+    const label = linkLabel(link);
+    const width = doc.getTextWidth(label);
+    const nextWidth = rowWidth + (row.length ? separatorWidth : 0) + width;
+    if (row.length && nextWidth > CONTENT_WIDTH) {
+      rows.push(row);
+      row = [];
+      rowWidth = 0;
+    }
+    row.push({ label, url: linkHref(link.url), width });
+    rowWidth += (row.length > 1 ? separatorWidth : 0) + width;
+  }
+  if (row.length) rows.push(row);
+  return { rows, separatorWidth };
+}
+
+function drawLinkRows(doc, cursor, layout, { x, align, color, font }) {
+  doc.setFont(font, "normal");
+  doc.setFontSize(9.5);
+  doc.setTextColor(...color);
+
+  for (const row of layout.rows) {
+    const totalWidth = row.reduce((sum, item) => sum + item.width, 0) +
+      layout.separatorWidth * Math.max(0, row.length - 1);
+    let currentX = align === "center" ? x - totalWidth / 2 : x;
+    row.forEach((item, index) => {
+      if (index > 0) {
+        doc.text("   |   ", currentX, cursor.y);
+        currentX += layout.separatorWidth;
+      }
+      doc.text(item.label, currentX, cursor.y);
+      doc.link(currentX, cursor.y - 9.5, item.width, 12, { url: item.url });
+      currentX += item.width;
+    });
+    cursor.y += 13;
+  }
+}
+
+function drawOverflowPageTheme(doc, template) {
+  doc.setFillColor(...template.pdf.accentRGB);
+  if (template.headerStyle === "left-rule") {
+    doc.rect(0, 0, 4, PAGE_HEIGHT, "F");
+  } else {
+    doc.rect(0, 0, PAGE_WIDTH, template.headerStyle === "band" ? 7 : 4, "F");
+  }
+}
+
 // Mirrors CVPreview.jsx's ResumeHeader variants. `pdf.headingFont` /
 // `pdf.bodyFont` are jsPDF's built-in "times"/"helvetica" — see the note
 // in data/templates.js on why real webfonts aren't embedded here.
 function writeHeader(doc, cursor, resume, template) {
   const { pdf } = template;
+  const links = activeResumeLinks(resume);
+  const linkLayout = layoutLinkRows(doc, links, pdf.bodyFont);
+  const contactLine = [resume.email, resume.phone].filter(Boolean).join("   |   ");
 
   if (pdf.headerBand) {
-    const bandHeight = 118;
+    const bandHeight = 87 + (resume.tagline || resume.location ? 15 : 0) +
+      (contactLine ? 15 : 0) + linkLayout.rows.length * 13;
     doc.setFillColor(...pdf.accentRGB);
     doc.rect(0, 0, PAGE_WIDTH, bandHeight, "F");
 
@@ -48,20 +109,31 @@ function writeHeader(doc, cursor, resume, template) {
       cursor.y += 15;
     }
 
-    const contactLine = [resume.email, resume.phone, resume.link].filter(Boolean).join("   |   ");
     if (contactLine) {
       doc.setFont(pdf.bodyFont, "normal");
       doc.setFontSize(9.5);
       doc.setTextColor(255, 255, 255);
       doc.text(contactLine, PAGE_WIDTH / 2, cursor.y, { align: "center" });
+      cursor.y += 15;
     }
+
+    drawLinkRows(doc, cursor, linkLayout, {
+      x: PAGE_WIDTH / 2,
+      align: "center",
+      color: [255, 255, 255],
+      font: pdf.bodyFont,
+    });
 
     cursor.y = bandHeight + 26;
     return;
   }
 
   doc.setFillColor(...pdf.accentRGB);
-  doc.rect(0, 0, PAGE_WIDTH, 4, "F");
+  if (template.headerStyle === "left-rule") {
+    doc.rect(0, 0, 4, PAGE_HEIGHT, "F");
+  } else {
+    doc.rect(0, 0, PAGE_WIDTH, 4, "F");
+  }
   cursor.y = MARGIN_TOP + 14;
 
   const align = pdf.headerAlign === "left" ? "left" : "center";
@@ -82,7 +154,6 @@ function writeHeader(doc, cursor, resume, template) {
     cursor.y += 15;
   }
 
-  const contactLine = [resume.email, resume.phone, resume.link].filter(Boolean).join("   |   ");
   if (contactLine) {
     doc.setFont(pdf.bodyFont, "normal");
     doc.setFontSize(9.5);
@@ -90,6 +161,13 @@ function writeHeader(doc, cursor, resume, template) {
     doc.text(contactLine, x, cursor.y, { align });
     cursor.y += 20;
   }
+
+  drawLinkRows(doc, cursor, linkLayout, {
+    x,
+    align,
+    color: [85, 85, 85],
+    font: pdf.bodyFont,
+  });
 
   if (align === "left") {
     doc.setDrawColor(...pdf.accentRGB);
@@ -163,7 +241,7 @@ function writeBullets(doc, cursor, bullets) {
 }
 
 function renderResumeToPdf(doc, resume, template) {
-  const cursor = createCursor();
+  const cursor = createCursor({ onPageAdded: (pageDoc) => drawOverflowPageTheme(pageDoc, template) });
   writeHeader(doc, cursor, resume, template);
 
   if (resume.profile?.trim()) {

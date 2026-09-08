@@ -11,9 +11,6 @@ export default function CoverLetterEditorPanel({ coverLetter, setCoverLetter }) 
     <div data-tour="cl-editor-panel" className="flex flex-col gap-8 p-6">
       <Field label="Design">
         <TemplatePicker value={coverLetter.template} onChange={(id) => update("template", id)} />
-        <p className="mt-2 text-xs text-ink-soft">
-          Same designs as the Resume Builder — pick the one that matches your resume for a cohesive set.
-        </p>
       </Field>
 
       <Field label="Your details">

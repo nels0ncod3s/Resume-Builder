@@ -31,7 +31,7 @@ export default function BuilderPage() {
         </div>
         <EditorPanel resume={resume} setResume={setResume} />
       </div>
-      <div className="order-1 flex-1 px-4 py-6 md:order-2 md:h-full md:overflow-y-auto md:px-6 md:py-8">
+      <div className="order-1 min-h-0 flex-1 overflow-x-clip px-4 py-6 pb-12 md:order-2 md:h-full md:overflow-y-auto md:px-6 md:py-8 md:pb-14 [scrollbar-gutter:stable]">
         <div data-tour="cv-preview">
           <CVScaledViewport cvRef={cvRef}>
             <CVPreview ref={cvRef} resume={resume} />

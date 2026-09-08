@@ -1,20 +1,20 @@
 const stats = [
-  { value: "Free", label: "No account needed" },
-  { value: "Private", label: "Data stays in your browser" },
-  { value: "8 checks", label: "Real ATS scoring rules" },
-  { value: "PDF & PNG", label: "Instant export" },
+  { value: "4", label: "Distinct document templates" },
+  { value: "8", label: "Practical resume checks" },
+  { value: "Private", label: "Saved only in your browser" },
+  { value: "PDF + PNG", label: "Export when you are ready" },
 ];
 
 export default function SocialProof() {
   return (
-    <section className="bg-ink px-6 py-8">
-      <div className="mx-auto grid max-w-5xl grid-cols-2 divide-y divide-white/10 md:grid-cols-4 md:divide-x md:divide-y-0">
+    <section className="border-y border-line bg-paper px-6 py-7">
+      <div className="mx-auto grid max-w-6xl grid-cols-2 divide-x divide-y divide-line md:grid-cols-4 md:divide-y-0">
         {stats.map((stat) => (
           <div key={stat.value} className="flex flex-col items-center gap-1 px-4 py-4 text-center">
-            <span className="font-display text-2xl font-bold text-white md:text-3xl">
+            <span className="font-display text-2xl font-bold text-ink md:text-3xl">
               {stat.value}
             </span>
-            <span className="text-xs uppercase tracking-wide text-white/60">{stat.label}</span>
+            <span className="max-w-[150px] text-[10px] font-semibold uppercase text-ink-soft">{stat.label}</span>
           </div>
         ))}
       </div>

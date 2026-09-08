@@ -125,7 +125,7 @@ export function analyzeResume({ text, bullets: providedBullets, jobDescription }
       hasEmail && hasPhone ? "pass" : hasEmail || hasPhone ? "warn" : "fail",
       hasEmail && hasPhone
         ? "Email and phone number are both present."
-        : `Missing ${!hasEmail ? "an email address" : "a phone number"} — ATS profiles are built from this field.`
+        : `Missing ${!hasEmail ? "an email address" : "a phone number"} — include both so recruiters can contact you.`
     )
   );
 
@@ -139,7 +139,7 @@ export function analyzeResume({ text, bullets: providedBullets, jobDescription }
       missingSections.length === 0 ? "pass" : missingSections.length === 1 ? "warn" : "fail",
       missingSections.length === 0
         ? "Experience, Education and Skills sections are all clearly labeled."
-        : `Couldn't find a clearly labeled ${missingSections.join(", ")} section — ATS parsers look for these exact headers.`
+        : `Couldn't find a clearly labeled ${missingSections.join(", ")} section — conventional headings are easier for software and recruiters to scan.`
     )
   );
 
@@ -214,10 +214,10 @@ export function analyzeResume({ text, bullets: providedBullets, jobDescription }
       "Text is machine-readable",
       textDensity > 200 ? "pass" : textDensity > 0 ? "warn" : "fail",
       textDensity > 200
-        ? "Plenty of extractable text — this document will parse cleanly in an ATS."
+        ? "Plenty of extractable text was found, which is a good sign for machine readability."
         : textDensity > 0
           ? "Very little extractable text was found — double-check this isn't a scanned/image-based file."
-          : "No extractable text found — this looks like a scanned or image-based PDF, which most ATS cannot read at all."
+          : "No extractable text was found. This may be a scanned or image-based PDF and could be difficult for application software to read."
     )
   );
 

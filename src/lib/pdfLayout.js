@@ -29,7 +29,7 @@ export const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_X * 2;
 
 /** Tracks the current vertical position and pushes a new page whenever the
  * next chunk of content wouldn't fit above the bottom margin. */
-export function createCursor() {
+export function createCursor({ onPageAdded } = {}) {
   let y = MARGIN_TOP;
   return {
     get y() {
@@ -41,6 +41,7 @@ export function createCursor() {
     ensureSpace(doc, needed) {
       if (y + needed > PAGE_HEIGHT - MARGIN_BOTTOM) {
         doc.addPage();
+        onPageAdded?.(doc);
         y = MARGIN_TOP;
       }
     },

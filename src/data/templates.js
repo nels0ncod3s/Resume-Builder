@@ -38,6 +38,8 @@ export const TEMPLATES = [
     id: "classic-serif",
     name: "Classic Serif",
     description: "Centered serif headline with a thin accent rule. Resume Pilot's original look.",
+    category: "Classic",
+    bestFor: "Traditional roles and leadership applications",
     // Featured templates render directly in the picker; everything else
     // lives behind "More templates" — see TemplatePicker.jsx. Keeps the
     // picker from just growing a longer and longer grid every time a
@@ -60,8 +62,10 @@ export const TEMPLATES = [
   },
   {
     id: "modern-mono",
-    name: "Modern Mono",
-    description: "Left-aligned sans-serif headline, solid accent underline. Minimal and ATS-first.",
+    name: "Modern Line",
+    description: "Left-aligned sans-serif headline with a precise teal rule. Minimal and ATS-first.",
+    category: "Modern",
+    bestFor: "Product, operations and technology roles",
     featured: true,
     fonts: {
       heading: '"DM Sans", sans-serif',
@@ -82,6 +86,9 @@ export const TEMPLATES = [
     id: "bold-editorial",
     name: "Bold Editorial",
     description: "Full-width color header band with serif display type. Confident and distinctive.",
+    category: "Editorial",
+    bestFor: "Creative, communications and leadership roles",
+    featured: true,
     fonts: {
       heading: '"Playfair Display", serif',
       body: '"DM Sans", sans-serif',
@@ -102,6 +109,8 @@ export const TEMPLATES = [
     name: "Code Clean",
     description:
       "Left-aligned monospace headline, sharp accent underline. Built for engineering and technical resumes.",
+    category: "Technical",
+    bestFor: "Engineering, data and infrastructure roles",
     fonts: {
       heading: '"Space Mono", monospace',
       body: '"DM Sans", sans-serif',
@@ -120,27 +129,17 @@ export const TEMPLATES = [
       headerAlign: "left",
     },
   },
-  {
-    id: "quiet-sans",
-    name: "Quiet Sans",
-    description: "Centered sans-serif headline with a soft accent rule. Understated and easy to scan.",
-    fonts: {
-      heading: '"DM Sans", sans-serif',
-      body: '"DM Sans", sans-serif',
-    },
-    accent: "#1d4ed8",
-    headerStyle: "centered-rule",
-    swatch: { bg: "#ffffff", accent: "#1d4ed8" },
-    pdf: {
-      headingFont: "helvetica",
-      bodyFont: "helvetica",
-      accentRGB: [29, 78, 216],
-      headerBand: false,
-      headerAlign: "center",
-    },
-  },
 ];
 
+const LEGACY_TEMPLATE_MAP = {
+  "quiet-sans": "classic-serif",
+  "executive-green": "classic-serif",
+  "structured-slate": "modern-mono",
+  "precision-blue": "modern-mono",
+  "studio-rose": "bold-editorial",
+};
+
 export function getTemplate(id) {
-  return TEMPLATES.find((t) => t.id === id) ?? TEMPLATES.find((t) => t.id === DEFAULT_TEMPLATE_ID);
+  const resolvedId = LEGACY_TEMPLATE_MAP[id] ?? id;
+  return TEMPLATES.find((t) => t.id === resolvedId) ?? TEMPLATES.find((t) => t.id === DEFAULT_TEMPLATE_ID);
 }

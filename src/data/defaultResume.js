@@ -1,4 +1,4 @@
-import { DEFAULT_TEMPLATE_ID } from "./templates.js";
+import { DEFAULT_TEMPLATE_ID, getTemplate } from "./templates.js";
 import { generateId } from "../lib/id.js";
 
 // The order the body sections render in, both in the CV preview and in the
@@ -14,7 +14,9 @@ export const createDefaultResume = () => ({
   location: "City, Country",
   email: "youremail@example.com",
   phone: "+000 000 0000",
-  link: "github.com/yourusername",
+  links: [
+    { id: generateId(), label: "GitHub", url: "github.com/yourusername" },
+  ],
   profile:
     "A brief, punchy professional summary goes here. Cover who you are, the kind of work you do, and what you're looking for next in two to three sentences tailored to the role.",
   education: [
@@ -137,6 +139,28 @@ function normalizeSkills(skills) {
   return null;
 }
 
+function normalizeLinks(links, legacyLink) {
+  if (Array.isArray(links)) {
+    return links
+      .map((item) =>
+        withId({
+          id: item?.id,
+          label: str(item?.label),
+          url: str(item?.url),
+        })
+      )
+      .filter((item) => item.label || item.url);
+  }
+
+  // Older saves only had one unlabelled `link` string. Keep it when the
+  // schema is upgraded so existing resumes do not lose their portfolio.
+  if (typeof legacyLink === "string" && legacyLink.trim()) {
+    return [{ id: generateId(), label: "Portfolio", url: legacyLink }];
+  }
+
+  return null;
+}
+
 /**
  * Takes whatever's actually sitting in localStorage — which may predate the
  * current schema, have been hand-edited, or partially corrupted — and
@@ -157,14 +181,14 @@ export function sanitizeResume(raw) {
   if (!raw || typeof raw !== "object") return defaults;
 
   return {
-    template: str(raw.template, defaults.template),
+    template: getTemplate(str(raw.template, defaults.template)).id,
     sectionOrder: normalizeSectionOrder(raw.sectionOrder) ?? defaults.sectionOrder,
     name: str(raw.name, defaults.name),
     tagline: str(raw.tagline, defaults.tagline),
     location: str(raw.location, defaults.location),
     email: str(raw.email, defaults.email),
     phone: str(raw.phone, defaults.phone),
-    link: str(raw.link, defaults.link),
+    links: normalizeLinks(raw.links, raw.link) ?? defaults.links,
     profile: str(raw.profile, defaults.profile),
     education: normalizeEducation(raw.education) ?? defaults.education,
     experience: normalizeExperience(raw.experience) ?? defaults.experience,

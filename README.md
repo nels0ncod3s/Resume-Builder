@@ -1,16 +1,27 @@
-# React + Vite
+# Resume Pilot
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Resume Pilot is a browser-based toolkit for building a resume, creating a matching cover letter, and reviewing a resume for structure, readability, achievement language, and job-description keyword overlap.
 
-Currently, two official plugins are available:
+## Product areas
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Resume builder with live A4 preview, section reordering, PDF import, autosave, and PDF/PNG export
+- Matching cover-letter builder and export flow
+- Rules-based ATS readiness review with optional job-description comparison
+- Four distinct, coordinated resume and cover-letter templates
+- Local browser storage with no account required
 
-## React Compiler
+## Development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+npm run dev
+```
 
-## Expanding the Oxlint configuration
+Run the production checks with:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+```bash
+npm run lint
+npm run build
+```
+
+The ATS score is an on-device heuristic, not a prediction from any specific employer or applicant tracking system.

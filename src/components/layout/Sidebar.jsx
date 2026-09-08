@@ -1,9 +1,10 @@
 import { NavLink } from "react-router-dom";
+import { FileText, Mail, ScanSearch } from "lucide-react";
 
 const links = [
-  { to: "/app/builder", label: "Resume Builder", icon: "📝", tourId: "nav-builder" },
-  { to: "/app/cover-letter", label: "Cover Letter", icon: "✉️", tourId: "nav-cover-letter" },
-  { to: "/app/ats-checker", label: "ATS Checker", icon: "🎯", tourId: "nav-ats" },
+  { to: "/app/builder", label: "Resume Builder", icon: FileText, tourId: "nav-builder" },
+  { to: "/app/cover-letter", label: "Cover Letter", icon: Mail, tourId: "nav-cover-letter" },
+  { to: "/app/ats-checker", label: "ATS Check", icon: ScanSearch, tourId: "nav-ats" },
 ];
 
 export default function Sidebar() {
@@ -13,23 +14,24 @@ export default function Sidebar() {
         Resume Pilot
       </a>
       <nav className="flex flex-col gap-1">
-        {links.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            data-tour={link.tourId}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                isActive
-                  ? "bg-ink text-white"
-                  : "text-ink-soft hover:bg-canvas hover:text-ink"
-              }`
-            }
-          >
-            <span aria-hidden="true">{link.icon}</span>
-            {link.label}
-          </NavLink>
-        ))}
+        {links.map((link) => {
+          const Icon = link.icon;
+          return (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              data-tour={link.tourId}
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                  isActive ? "bg-ink text-white" : "text-ink-soft hover:bg-canvas hover:text-ink"
+                }`
+              }
+            >
+              <Icon size={17} strokeWidth={1.8} aria-hidden="true" />
+              {link.label}
+            </NavLink>
+          );
+        })}
       </nav>
     </aside>
   );
