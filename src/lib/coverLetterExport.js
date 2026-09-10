@@ -149,7 +149,7 @@ function renderCoverLetterToPdf(doc, letter, template) {
  * resume.template — keeps the template as the single field on the data
  * object rather than a second argument every caller has to remember. */
 export async function downloadAsPdf(coverLetter, filename) {
-  const { default: jsPDF } = await import("jspdf");
+  const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
   renderCoverLetterToPdf(doc, coverLetter, getTemplate(coverLetter.template));
   doc.save(filename || `${slugify(coverLetter.senderName)}-cover-letter.pdf`);
