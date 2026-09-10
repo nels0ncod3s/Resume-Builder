@@ -1,13 +1,7 @@
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef } from "react";
 import { getTemplate } from "../../data/templates.js";
 import { DEFAULT_SECTION_ORDER } from "../../data/defaultResume.js";
 import { activeResumeLinks, linkHref, linkLabel } from "../../lib/resumeLinks.js";
-
-// One A4 page at the preview's 96dpi-equivalent pixel size. Used only to
-// draw page-break guides — the real PDF paginates independently (see
-// lib/pdfLayout.js) using point-based measurements, so these are an
-// approximation of where a page break will fall, not an exact match.
-const PAGE_HEIGHT_PX = 1123;
 
 const CVPreview = forwardRef(function CVPreview({ resume }, forwardedRef) {
   const template = getTemplate(resume.template);
@@ -15,29 +9,6 @@ const CVPreview = forwardRef(function CVPreview({ resume }, forwardedRef) {
   const isBand = template.headerStyle === "band";
   const isLeftRule = template.headerStyle === "left-rule";
   const sectionOrder = resume.sectionOrder?.length ? resume.sectionOrder : DEFAULT_SECTION_ORDER;
-
-  // Measures the rendered height of the page so we can draw a guide line
-  // wherever content crosses a page boundary — the white "paper" itself
-  // already grows with content (min-h, not h, below), so nothing is ever
-  // clipped; this just shows where page 2, 3, etc. will start.
-  const nodeRef = useRef(null);
-  const [pageCount, setPageCount] = useState(1);
-
-  useEffect(() => {
-    const node = nodeRef.current;
-    if (!node) return;
-    const measure = () => setPageCount(Math.max(1, Math.ceil(node.offsetHeight / PAGE_HEIGHT_PX)));
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [resume]);
-
-  const setRefs = (el) => {
-    nodeRef.current = el;
-    if (typeof forwardedRef === "function") forwardedRef(el);
-    else if (forwardedRef) forwardedRef.current = el;
-  };
 
   const sections = {
     profile: () =>
@@ -131,7 +102,7 @@ const CVPreview = forwardRef(function CVPreview({ resume }, forwardedRef) {
 
   return (
     <div
-      ref={setRefs}
+      ref={forwardedRef}
       className="relative min-h-[1123px] w-[794px] shrink-0 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.18)]"
       style={{ fontFamily: template.fonts.body }}
     >
@@ -139,34 +110,12 @@ const CVPreview = forwardRef(function CVPreview({ resume }, forwardedRef) {
         <div className="absolute inset-y-0 left-0 w-[6px]" style={{ background: template.accent }} />
       )}
 
-      {!isLeftRule &&
-        Array.from({ length: pageCount - 1 }, (_, i) => (
-          <div
-            key={`page-accent-${i}`}
-            className="pointer-events-none absolute inset-x-0 h-[5px]"
-            style={{ top: PAGE_HEIGHT_PX * (i + 1), background: template.accent }}
-          />
-        ))}
-
       <ResumeHeader resume={resume} template={template} />
 
       <div className={`px-14 pb-13 ${isBand ? "pt-3" : "pt-6"}`}>
         {sectionOrder.map((key) => sections[key]?.())}
       </div>
 
-      {Array.from({ length: pageCount - 1 }, (_, i) => (
-        <div
-          key={i}
-          className="pointer-events-none absolute inset-x-0 flex items-center gap-2 px-4"
-          style={{ top: PAGE_HEIGHT_PX * (i + 1) }}
-        >
-          <div className="h-px flex-1 border-t border-dashed border-black/20" />
-          <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-black/35">
-            Page {i + 2}
-          </span>
-          <div className="h-px flex-1 border-t border-dashed border-black/20" />
-        </div>
-      ))}
     </div>
   );
 });

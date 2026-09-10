@@ -10,6 +10,7 @@ import {
 } from "./pdfLayout.js";
 import { getTemplate } from "../data/templates.js";
 import { activeResumeLinks, linkHref, linkLabel } from "./resumeLinks.js";
+import { downloadBlob } from "./domCapture.js";
 
 export { downloadAsImage } from "./domCapture.js";
 
@@ -316,5 +317,5 @@ export async function downloadAsPdf(resume, filename) {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
   renderResumeToPdf(doc, resume, getTemplate(resume.template));
-  doc.save(filename || `${slugify(resume.name)}.pdf`);
+  downloadBlob(doc.output("blob"), filename || `${slugify(resume.name)}.pdf`);
 }

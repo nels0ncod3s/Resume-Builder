@@ -1,5 +1,6 @@
 import { PAGE_WIDTH, PAGE_HEIGHT, MARGIN_X, MARGIN_TOP, createCursor, writeParagraph } from "./pdfLayout.js";
 import { getTemplate } from "../data/templates.js";
+import { downloadBlob } from "./domCapture.js";
 
 export { downloadAsImage } from "./domCapture.js";
 
@@ -152,5 +153,5 @@ export async function downloadAsPdf(coverLetter, filename) {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
   renderCoverLetterToPdf(doc, coverLetter, getTemplate(coverLetter.template));
-  doc.save(filename || `${slugify(coverLetter.senderName)}-cover-letter.pdf`);
+  downloadBlob(doc.output("blob"), filename || `${slugify(coverLetter.senderName)}-cover-letter.pdf`);
 }
