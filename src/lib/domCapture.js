@@ -19,12 +19,44 @@ export async function captureNode(node) {
 /** Starts a browser download from generated file data. Keeping the anchor
  * attached until after the click makes downloads reliable in Chromium,
  * Safari, and Firefox, including after an asynchronous render finishes. */
-export function downloadBlob(blob, filename) {
+export async function requestSaveTarget(filename, mimeType, extension, description) {
+  if (typeof window.showSaveFilePicker !== "function") {
+    return { kind: "download" };
+  }
+
+  try {
+    const handle = await window.showSaveFilePicker({
+      suggestedName: filename,
+      types: [
+        {
+          description,
+          accept: { [mimeType]: [extension] },
+        },
+      ],
+    });
+    return { kind: "file-handle", handle };
+  } catch (error) {
+    if (error?.name === "AbortError") return { kind: "cancelled" };
+    throw error;
+  }
+}
+
+export async function downloadBlob(blob, filename, target = { kind: "download" }) {
+  if (target.kind === "cancelled") return false;
+
+  if (target.kind === "file-handle") {
+    const writable = await target.handle.createWritable();
+    await writable.write(blob);
+    await writable.close();
+    return true;
+  }
+
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
   link.download = filename;
-  link.style.display = "none";
+  link.style.position = "fixed";
+  link.style.left = "-9999px";
   document.body.appendChild(link);
   link.click();
 
@@ -32,6 +64,7 @@ export function downloadBlob(blob, filename) {
     link.remove();
     URL.revokeObjectURL(url);
   }, 1_000);
+  return true;
 }
 
 /** Downloads a screenshot of a DOM node as a PNG. This is a flattened
@@ -39,6 +72,12 @@ export function downloadBlob(blob, filename) {
  * "image" export option, never for the PDF export (see resumeExport.js /
  * coverLetterExport.js for why the PDF export builds real text instead). */
 export async function downloadAsImage(node, filename = "download.png") {
+  // Ask where to save while the original button click still owns browser
+  // activation. Waiting until html2canvas finishes can cause Chrome to
+  // reject the download without showing anything.
+  const target = await requestSaveTarget(filename, "image/png", ".png", "PNG image");
+  if (target.kind === "cancelled") return false;
+
   const canvas = await captureNode(node);
   const blob = await new Promise((resolve, reject) => {
     canvas.toBlob((result) => {
@@ -46,5 +85,5 @@ export async function downloadAsImage(node, filename = "download.png") {
       else reject(new Error("The resume image could not be created."));
     }, "image/png");
   });
-  downloadBlob(blob, filename);
+  return downloadBlob(blob, filename, target);
 }

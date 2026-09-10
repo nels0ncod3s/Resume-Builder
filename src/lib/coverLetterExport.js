@@ -1,6 +1,6 @@
 import { PAGE_WIDTH, PAGE_HEIGHT, MARGIN_X, MARGIN_TOP, createCursor, writeParagraph } from "./pdfLayout.js";
 import { getTemplate } from "../data/templates.js";
-import { downloadBlob } from "./domCapture.js";
+import { downloadBlob, requestSaveTarget } from "./domCapture.js";
 
 export { downloadAsImage } from "./domCapture.js";
 
@@ -150,8 +150,12 @@ function renderCoverLetterToPdf(doc, letter, template) {
  * resume.template — keeps the template as the single field on the data
  * object rather than a second argument every caller has to remember. */
 export async function downloadAsPdf(coverLetter, filename) {
+  const outputName = filename || `${slugify(coverLetter.senderName)}-cover-letter.pdf`;
+  const target = await requestSaveTarget(outputName, "application/pdf", ".pdf", "PDF document");
+  if (target.kind === "cancelled") return false;
+
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
   renderCoverLetterToPdf(doc, coverLetter, getTemplate(coverLetter.template));
-  downloadBlob(doc.output("blob"), filename || `${slugify(coverLetter.senderName)}-cover-letter.pdf`);
+  return downloadBlob(doc.output("blob"), outputName, target);
 }

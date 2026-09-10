@@ -11,8 +11,12 @@ export default function DownloadBar({ cvRef, resume }) {
     setBusy("image");
     setNotice(null);
     try {
-      await downloadAsImage(cvRef.current, "resume.png");
-      setNotice({ type: "success", text: "Resume image downloaded." });
+      const saved = await downloadAsImage(cvRef.current, "resume.png");
+      setNotice(
+        saved
+          ? { type: "success", text: "Resume image saved." }
+          : { type: "neutral", text: "Image download cancelled." },
+      );
     } catch (error) {
       console.error("Resume image download failed", error);
       setNotice({ type: "error", text: "Image download failed. Please try again." });
@@ -26,8 +30,12 @@ export default function DownloadBar({ cvRef, resume }) {
     setBusy("pdf");
     setNotice(null);
     try {
-      await downloadAsPdf(resume);
-      setNotice({ type: "success", text: "Resume PDF downloaded." });
+      const saved = await downloadAsPdf(resume);
+      setNotice(
+        saved
+          ? { type: "success", text: "Resume PDF saved." }
+          : { type: "neutral", text: "PDF download cancelled." },
+      );
     } catch (error) {
       console.error("Resume PDF download failed", error);
       setNotice({ type: "error", text: "PDF download failed. Please try again." });
@@ -64,7 +72,13 @@ export default function DownloadBar({ cvRef, resume }) {
         <p
           role="status"
           aria-live="polite"
-          className={`text-sm ${notice.type === "error" ? "text-red-700" : "text-emerald-700"}`}
+          className={`text-sm ${
+            notice.type === "error"
+              ? "text-red-700"
+              : notice.type === "success"
+                ? "text-emerald-700"
+                : "text-neutral-600"
+          }`}
         >
           {notice.text}
         </p>

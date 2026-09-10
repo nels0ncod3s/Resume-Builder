@@ -10,7 +10,7 @@ import {
 } from "./pdfLayout.js";
 import { getTemplate } from "../data/templates.js";
 import { activeResumeLinks, linkHref, linkLabel } from "./resumeLinks.js";
-import { downloadBlob } from "./domCapture.js";
+import { downloadBlob, requestSaveTarget } from "./domCapture.js";
 
 export { downloadAsImage } from "./domCapture.js";
 
@@ -311,11 +311,15 @@ function renderResumeToPdf(doc, resume, template) {
  * resume.template internally (same source of truth the on-screen preview
  * uses) so callers never have to thread the template through separately. */
 export async function downloadAsPdf(resume, filename) {
+  const outputName = filename || `${slugify(resume.name)}.pdf`;
+  const target = await requestSaveTarget(outputName, "application/pdf", ".pdf", "PDF document");
+  if (target.kind === "cancelled") return false;
+
   // jsPDF's ESM build exposes the constructor as a named export. Its
   // default export is a namespace object, so `new default()` throws at
   // runtime even though Vite can bundle it successfully.
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
   renderResumeToPdf(doc, resume, getTemplate(resume.template));
-  downloadBlob(doc.output("blob"), filename || `${slugify(resume.name)}.pdf`);
+  return downloadBlob(doc.output("blob"), outputName, target);
 }
