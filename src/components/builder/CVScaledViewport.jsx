@@ -49,7 +49,11 @@ export default function CVScaledViewport({ cvRef, children }) {
 
   return (
     <div ref={viewportRef} className="relative w-full">
-      <div className="absolute left-1/2 top-0 -translate-x-1/2">
+      {/* The positioning wrapper keeps its unscaled 794px × document-height
+          hit box even when the CV inside is visually scaled down. Let clicks
+          pass through its transparent area while keeping the rendered CV
+          itself interactive, otherwise this layer covers the download bar. */}
+      <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 [&>*]:pointer-events-auto">
         {children}
       </div>
     </div>
