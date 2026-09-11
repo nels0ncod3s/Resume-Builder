@@ -152,7 +152,7 @@ function renderCoverLetterToPdf(doc, letter, template) {
 export async function downloadAsPdf(coverLetter, filename) {
   const outputName = filename || `${slugify(coverLetter.senderName)}-cover-letter.pdf`;
   const target = await requestSaveTarget(outputName, "application/pdf", ".pdf", "PDF document");
-  if (target.kind === "cancelled") return false;
+  if (target.kind === "cancelled") return null;
 
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });

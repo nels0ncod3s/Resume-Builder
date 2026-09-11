@@ -313,7 +313,7 @@ function renderResumeToPdf(doc, resume, template) {
 export async function downloadAsPdf(resume, filename) {
   const outputName = filename || `${slugify(resume.name)}.pdf`;
   const target = await requestSaveTarget(outputName, "application/pdf", ".pdf", "PDF document");
-  if (target.kind === "cancelled") return false;
+  if (target.kind === "cancelled") return null;
 
   // jsPDF's ESM build exposes the constructor as a named export. Its
   // default export is a namespace object, so `new default()` throws at

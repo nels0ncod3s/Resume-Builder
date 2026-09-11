@@ -1,24 +1,42 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FileDown, ImageDown } from "lucide-react";
 import { downloadAsImage, downloadAsPdf } from "../../lib/resumeExport.js";
 
-export default function DownloadBar({ cvRef, resume }) {
+export default function DownloadBar({
+  cvRef,
+  resume,
+  exportPdf = downloadAsPdf,
+  documentLabel = "Resume",
+  imageFilename = "resume.png",
+  tourPrefix = "",
+}) {
   const [busy, setBusy] = useState(null);
   const [notice, setNotice] = useState(null);
+  const [fallbackLink, setFallbackLink] = useState(null);
+
+  useEffect(() => {
+    return () => {
+      if (fallbackLink?.url) URL.revokeObjectURL(fallbackLink.url);
+    };
+  }, [fallbackLink]);
 
   async function handleImage() {
     if (!cvRef.current || busy) return;
     setBusy("image");
     setNotice(null);
+    setFallbackLink(null);
     try {
-      const saved = await downloadAsImage(cvRef.current, "resume.png");
-      setNotice(
-        saved
-          ? { type: "success", text: "Resume image saved." }
-          : { type: "neutral", text: "Image download cancelled." },
-      );
+      const result = await downloadAsImage(cvRef.current, imageFilename);
+      if (!result) {
+        setNotice({ type: "neutral", text: "Image download cancelled." });
+      } else if (result.url) {
+        setFallbackLink({ url: result.url, filename: result.filename, label: "Download image now" });
+        setNotice({ type: "success", text: `${documentLabel} image is ready. If the download did not start, use the link below.` });
+      } else {
+        setNotice({ type: "success", text: `${documentLabel} image saved.` });
+      }
     } catch (error) {
-      console.error("Resume image download failed", error);
+      console.error(`${documentLabel} image download failed`, error);
       setNotice({ type: "error", text: "Image download failed. Please try again." });
     } finally {
       setBusy(null);
@@ -29,15 +47,19 @@ export default function DownloadBar({ cvRef, resume }) {
     if (busy) return;
     setBusy("pdf");
     setNotice(null);
+    setFallbackLink(null);
     try {
-      const saved = await downloadAsPdf(resume);
-      setNotice(
-        saved
-          ? { type: "success", text: "Resume PDF saved." }
-          : { type: "neutral", text: "PDF download cancelled." },
-      );
+      const result = await exportPdf(resume);
+      if (!result) {
+        setNotice({ type: "neutral", text: "PDF download cancelled." });
+      } else if (result.url) {
+        setFallbackLink({ url: result.url, filename: result.filename, label: "Download PDF now" });
+        setNotice({ type: "success", text: `${documentLabel} PDF is ready. If the download did not start, use the link below.` });
+      } else {
+        setNotice({ type: "success", text: `${documentLabel} PDF saved.` });
+      }
     } catch (error) {
-      console.error("Resume PDF download failed", error);
+      console.error(`${documentLabel} PDF download failed`, error);
       setNotice({ type: "error", text: "PDF download failed. Please try again." });
     } finally {
       setBusy(null);
@@ -49,7 +71,7 @@ export default function DownloadBar({ cvRef, resume }) {
       <div className="flex justify-center gap-3">
         <button
           type="button"
-          data-tour="download-image"
+          data-tour={`${tourPrefix}download-image`}
           disabled={busy !== null}
           onClick={handleImage}
           className="flex min-h-[44px] items-center gap-2 border border-line bg-paper px-5 text-sm font-semibold text-ink transition-colors hover:border-ink disabled:opacity-50"
@@ -59,7 +81,7 @@ export default function DownloadBar({ cvRef, resume }) {
         </button>
         <button
           type="button"
-          data-tour="download-pdf"
+          data-tour={`${tourPrefix}download-pdf`}
           disabled={busy !== null}
           onClick={handlePdf}
           className="flex min-h-[44px] items-center gap-2 bg-ink px-5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
@@ -82,6 +104,15 @@ export default function DownloadBar({ cvRef, resume }) {
         >
           {notice.text}
         </p>
+      )}
+      {fallbackLink && (
+        <a
+          href={fallbackLink.url}
+          download={fallbackLink.filename}
+          className="border-b border-ink text-sm font-semibold text-ink hover:opacity-70"
+        >
+          {fallbackLink.label}
+        </a>
       )}
     </div>
   );

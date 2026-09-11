@@ -37,18 +37,23 @@ export async function requestSaveTarget(filename, mimeType, extension, descripti
     return { kind: "file-handle", handle };
   } catch (error) {
     if (error?.name === "AbortError") return { kind: "cancelled" };
+    // Some embedded/managed Chrome contexts expose the API but reject it
+    // when called. Fall back to a normal browser download in that case.
+    if (error?.name === "NotAllowedError" || error?.name === "SecurityError") {
+      return { kind: "download" };
+    }
     throw error;
   }
 }
 
 export async function downloadBlob(blob, filename, target = { kind: "download" }) {
-  if (target.kind === "cancelled") return false;
+  if (target.kind === "cancelled") return null;
 
   if (target.kind === "file-handle") {
     const writable = await target.handle.createWritable();
     await writable.write(blob);
     await writable.close();
-    return true;
+    return { saved: true, method: "file-picker" };
   }
 
   const url = URL.createObjectURL(blob);
@@ -60,11 +65,11 @@ export async function downloadBlob(blob, filename, target = { kind: "download" }
   document.body.appendChild(link);
   link.click();
 
-  window.setTimeout(() => {
-    link.remove();
-    URL.revokeObjectURL(url);
-  }, 1_000);
-  return true;
+  link.remove();
+
+  // The download UI owns this URL and revokes it when replaced or unmounted,
+  // keeping its direct download link usable for as long as it is displayed.
+  return { saved: true, method: "browser-download", url, filename };
 }
 
 /** Downloads a screenshot of a DOM node as a PNG. This is a flattened
@@ -76,7 +81,7 @@ export async function downloadAsImage(node, filename = "download.png") {
   // activation. Waiting until html2canvas finishes can cause Chrome to
   // reject the download without showing anything.
   const target = await requestSaveTarget(filename, "image/png", ".png", "PNG image");
-  if (target.kind === "cancelled") return false;
+  if (target.kind === "cancelled") return null;
 
   const canvas = await captureNode(node);
   const blob = await new Promise((resolve, reject) => {

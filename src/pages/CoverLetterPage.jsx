@@ -1,41 +1,20 @@
-import { useRef, useState } from "react";
-import { FileDown, ImageDown } from "lucide-react";
+import { useRef } from "react";
+import DownloadBar from "../components/builder/DownloadBar.jsx";
 import { useOutletContext } from "react-router-dom";
 import { useCoverLetterData } from "../lib/coverLetterStorage.js";
 import CoverLetterEditorPanel from "../components/coverletter/CoverLetterEditorPanel.jsx";
 import ImportCoverLetterPdfButton from "../components/coverletter/ImportCoverLetterPdfButton.jsx";
 import CoverLetterPreview from "../components/coverletter/CoverLetterPreview.jsx";
 import CVScaledViewport from "../components/builder/CVScaledViewport.jsx";
-import { downloadAsImage, downloadAsPdf } from "../lib/coverLetterExport.js";
+import { downloadAsPdf } from "../lib/coverLetterExport.js";
 import { useCoverLetterTour } from "../components/onboarding/useProductTour.js";
 
 export default function CoverLetterPage() {
   const [coverLetter, setCoverLetter] = useCoverLetterData();
   const previewRef = useRef(null);
-  const [busy, setBusy] = useState(null);
   const { registerTour } = useOutletContext();
 
   useCoverLetterTour(registerTour);
-
-  async function handleImage() {
-    if (!previewRef.current || busy) return;
-    setBusy("image");
-    try {
-      await downloadAsImage(previewRef.current, "cover-letter.png");
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function handlePdf() {
-    if (busy) return;
-    setBusy("pdf");
-    try {
-      await downloadAsPdf(coverLetter);
-    } finally {
-      setBusy(null);
-    }
-  }
 
   return (
     <div className="flex h-full min-w-0 flex-col overflow-y-auto md:flex-row md:overflow-hidden">
@@ -51,28 +30,14 @@ export default function CoverLetterPage() {
             <CoverLetterPreview ref={previewRef} coverLetter={coverLetter} />
           </CVScaledViewport>
         </div>
-        <div className="flex justify-center gap-3 py-6">
-          <button
-            type="button"
-            data-tour="cl-download-image"
-            disabled={busy !== null}
-            onClick={handleImage}
-            className="flex min-h-[44px] items-center gap-2 border border-line bg-paper px-5 text-sm font-semibold text-ink transition-colors hover:border-ink disabled:opacity-50"
-          >
-            <ImageDown size={16} aria-hidden="true" />
-            {busy === "image" ? "Rendering…" : "Download as Image"}
-          </button>
-          <button
-            type="button"
-            data-tour="cl-download-pdf"
-            disabled={busy !== null}
-            onClick={handlePdf}
-            className="flex min-h-[44px] items-center gap-2 bg-ink px-5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
-            <FileDown size={16} aria-hidden="true" />
-            {busy === "pdf" ? "Rendering…" : "Download as PDF"}
-          </button>
-        </div>
+        <DownloadBar
+          cvRef={previewRef}
+          resume={coverLetter}
+          exportPdf={downloadAsPdf}
+          documentLabel="Cover letter"
+          imageFilename="cover-letter.png"
+          tourPrefix="cl-"
+        />
       </div>
     </div>
   );
